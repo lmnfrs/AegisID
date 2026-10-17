@@ -71,7 +71,7 @@ Prerequisites:
 - pnpm 12.11.2 (from `packageManager` in package.json). Corepack can install it: `corepack enable`.
 
 ```sh
-git clone <repository-url>
+git clone https://github.com/lmnfrs/AegisID.git
 cd AegisID
 pnpm install
 pnpm dev
