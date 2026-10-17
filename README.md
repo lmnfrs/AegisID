@@ -107,13 +107,11 @@ Secrets are set with `wrangler secret put <NAME>` and are never committed. Local
 
 ## Contributing
 
-<!-- TODO(maintainer): add CONTRIBUTING.md and link it here. -->
 Changes to security-sensitive areas need maintainer review. These are auth, OIDC, crypto, database access and migrations.
 
 ## Security
 
 Report vulnerabilities privately to the maintainers. Do not open public issues.
-<!-- TODO(maintainer): add a private contact address or enable GitHub private vulnerability reporting, and add SECURITY.md. -->
 
 ## License
 
