@@ -7,7 +7,7 @@ interface AlertProps {
 }
 
 export function Alert({ variant, title, children }: AlertProps) {
-  // Tiêu chuẩn trợ năng (Accessibility): Lỗi thì báo 'alert', bình thường thì báo 'status'
+  // Accessibility: errors use role 'alert', everything else uses 'status'
   const role = variant === 'error' ? 'alert' : 'status';
   
   return (

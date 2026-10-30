@@ -8,7 +8,7 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         {(import.meta.env.DEV || import.meta.env.VITE_SHOW_DEV === 'true') && (
-           // 3. Thay <div> bằng Component <DevShowcase />
+           // Dev-only showcase of UI components
           <Route path="/dev/components" element={<DevShowcase />} />
         )}
       </Routes>
