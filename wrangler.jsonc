@@ -22,7 +22,13 @@
         "binding": "DB",
         "database_id": "cae7cfe6-91b5-4d74-af0d-4a834b2fde61"
       }
-    ]
+    ],
+    "send_email": [
+		{
+			"name": "EMAIL",
+			"remote": true,
+		},
+	],
   },
 	"send_email": [
 		{
