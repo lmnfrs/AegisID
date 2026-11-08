@@ -76,8 +76,10 @@ if (showDev) t.post("/api/email/test", async (c) => {
   } catch (error) {
     console.error("Email sending failed:", error);
 
+    // Dev-only route: surface the cause so the test page shows why it failed.
+    const detail = error instanceof Error ? error.message : String(error);
     return c.json(
-      { ok: false, error: "Email sending failed" },
+      { ok: false, error: `Email sending failed: ${detail}` },
       500
     );
   }
