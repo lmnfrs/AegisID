@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { startAuthentication, startRegistration } from '@simplewebauthn/browser';
 import type {
   PublicKeyCredentialCreationOptionsJSON,
@@ -10,8 +10,8 @@ import { Select } from '../components/ui/Select';
 import { FormField } from '../components/ui/FormField';
 import { Alert } from '../components/ui/Alert';
 import { Card } from '../components/ui/Card';
-
-type Tenant = { id: string; slug: string; name: string };
+import { loadTenants } from '../lib/tenants';
+import type { Tenant } from '../lib/tenants';
 
 type Result =
   | { kind: 'success'; title: string; message: string }
@@ -52,31 +52,37 @@ function describeError(err: unknown): string {
 export function DevWebAuthn() {
   const [slug, setSlug] = useState('');
   const [tenants, setTenants] = useState<Tenant[] | null>(null);
+  const [tenantsLoading, setTenantsLoading] = useState(false);
   const [tenantsError, setTenantsError] = useState<string | null>(null);
   const [username, setUsername] = useState('');
   const [busy, setBusy] = useState<'register' | 'login' | null>(null);
   const [result, setResult] = useState<Result | null>(null);
+  const mounted = useRef(false);
 
   useEffect(() => {
-    let ignore = false;
-    fetch('/api/dev/tenants')
-      .then(async (res) => {
-        const body = (await res.json().catch(() => ({}))) as { tenants?: Tenant[]; error?: string };
-        if (!res.ok || !body.tenants) throw new Error(body.error ?? `HTTP ${res.status}`);
-        return body.tenants;
-      })
-      .then((list) => {
-        if (ignore) return;
-        setTenants(list);
-        setSlug((current) => current || list[0]?.slug || '');
-      })
-      .catch((err: unknown) => {
-        if (!ignore) setTenantsError(err instanceof Error ? err.message : 'Request failed');
-      });
+    // Tracks mount state so async tenant loads don't set state after unmount.
+    mounted.current = true;
     return () => {
-      ignore = true;
+      mounted.current = false;
     };
   }, []);
+
+  // Runs on focus/pointer down of the tenant Select, not on page load.
+  function ensureTenants() {
+    if (tenants !== null || tenantsLoading) return;
+    setTenantsLoading(true);
+    setTenantsError(null);
+    loadTenants()
+      .then((list) => {
+        if (mounted.current) setTenants(list);
+      })
+      .catch((err: unknown) => {
+        if (mounted.current) setTenantsError(err instanceof Error ? err.message : 'Request failed');
+      })
+      .finally(() => {
+        if (mounted.current) setTenantsLoading(false);
+      });
+  }
 
   const base = `/t/${encodeURIComponent(slug)}/api/auth`;
 
@@ -141,8 +147,12 @@ export function DevWebAuthn() {
               {...fieldProps}
               value={slug}
               onChange={(e) => setSlug(e.target.value)}
-              disabled={!tenants || tenants.length === 0}
+              onFocus={ensureTenants}
+              onPointerDown={ensureTenants}
+              disabled={tenants?.length === 0}
             >
+              <option value="">Choose tenant…</option>
+              {tenantsLoading && <option disabled>Loading…</option>}
               {(tenants ?? []).map((tenant) => (
                 <option key={tenant.id} value={tenant.slug}>
                   {`${tenant.slug} — ${tenant.name}`}
