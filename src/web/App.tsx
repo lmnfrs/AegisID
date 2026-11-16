@@ -3,6 +3,7 @@ import './App.css'
 
 import { DevShowcase } from './pages/DevShowcase';
 import { DevEmail } from './pages/DevEmail';
+import { DevWebAuthn } from './pages/DevWebAuthn';
 
 export default function App() {
   return (
@@ -15,6 +16,10 @@ export default function App() {
         {(import.meta.env.DEV || import.meta.env.VITE_SHOW_DEV === 'true') && (
           // Dev-only email test page
           <Route path="/dev/email" element={<DevEmail />} />
+        )}
+        {(import.meta.env.DEV || import.meta.env.VITE_SHOW_DEV === 'true') && (
+          // Dev-only passkey register / sign-in test page
+          <Route path="/dev/webauthn" element={<DevWebAuthn />} />
         )}
       </Routes>
     </BrowserRouter>

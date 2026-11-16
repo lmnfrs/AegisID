@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { devEmail } from "./dev/email";
+import { auth } from "./dev/webauthn";
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -20,6 +21,7 @@ const showDev =
   import.meta.env.DEV || import.meta.env.VITE_SHOW_DEV === "true";
 
 if (showDev) t.route("/api/email", devEmail);
+if (showDev) t.route("/api/auth", auth);
 
 app.route("/", t);
 
