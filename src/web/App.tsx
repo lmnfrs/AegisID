@@ -1,5 +1,6 @@
-import { lazy, Suspense } from 'react';
+import { lazy } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { DevLayout } from './pages/DevLayout';
 import './App.css'
 
 // Dev pages are lazy-loaded so their code (and heavy deps such as DataTables)
@@ -11,37 +12,25 @@ const DevWebAuthn = lazy(() => import('./pages/DevWebAuthn').then((m) => ({ defa
 const DevTenants = lazy(() => import('./pages/DevTenants').then((m) => ({ default: m.DevTenants })));
 const DevUsers = lazy(() => import('./pages/DevUsers').then((m) => ({ default: m.DevUsers })));
 
+// Single gate for every dev route: dev server, or an explicit VITE_SHOW_DEV=true build.
+const showDev = import.meta.env.DEV || import.meta.env.VITE_SHOW_DEV === 'true';
+
 export default function App() {
   return (
     <BrowserRouter>
-      <Suspense fallback={null}>
-        <Routes>
-          {(import.meta.env.DEV || import.meta.env.VITE_SHOW_DEV === 'true') && (
-            // Dev-only index linking to all dev pages
-            <Route path="/dev" element={<DevIndex />} />
-          )}
-          {(import.meta.env.DEV || import.meta.env.VITE_SHOW_DEV === 'true') && (
-            // Dev-only showcase of UI components
-            <Route path="/dev/components" element={<DevShowcase />} />
-          )}
-          {(import.meta.env.DEV || import.meta.env.VITE_SHOW_DEV === 'true') && (
-            // Dev-only email test page
-            <Route path="/dev/email" element={<DevEmail />} />
-          )}
-          {(import.meta.env.DEV || import.meta.env.VITE_SHOW_DEV === 'true') && (
-            // Dev-only passkey register / sign-in test page
-            <Route path="/dev/webauthn" element={<DevWebAuthn />} />
-          )}
-          {(import.meta.env.DEV || import.meta.env.VITE_SHOW_DEV === 'true') && (
-            // Dev-only tenant list and create page
-            <Route path="/dev/tenants" element={<DevTenants />} />
-          )}
-          {(import.meta.env.DEV || import.meta.env.VITE_SHOW_DEV === 'true') && (
-            // Dev-only user list per tenant
-            <Route path="/dev/users" element={<DevUsers />} />
-          )}
-        </Routes>
-      </Suspense>
+      <Routes>
+        {showDev && (
+          // Dev shell: one nav bar, every dev page rendered in its Outlet (no full reloads)
+          <Route path="/dev" element={<DevLayout />}>
+            <Route index element={<DevIndex />} />
+            <Route path="components" element={<DevShowcase />} />
+            <Route path="email" element={<DevEmail />} />
+            <Route path="webauthn" element={<DevWebAuthn />} />
+            <Route path="tenants" element={<DevTenants />} />
+            <Route path="users" element={<DevUsers />} />
+          </Route>
+        )}
+      </Routes>
     </BrowserRouter>
   );
 }

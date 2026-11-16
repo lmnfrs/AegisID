@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
 import { startAuthentication, startRegistration } from '@simplewebauthn/browser';
 import type {
@@ -131,7 +132,7 @@ export function DevWebAuthn() {
   }
 
   return (
-    <main>
+    <div>
       <Card
         title="Passkey test"
         desc="Registers and uses a passkey via /t/:slug/api/auth. Credentials are stored in the local D1 database."
@@ -163,7 +164,7 @@ export function DevWebAuthn() {
         )}
         {tenants?.length === 0 && (
           <Alert variant="info" title="No tenants yet">
-            Create one on the <a href="/dev/tenants">tenants page</a> first.
+            Create one on the <Link to="/dev/tenants">tenants page</Link> first.
           </Alert>
         )}
         <FormField label="Username" hint="Required to register. Leave blank to sign in with any saved passkey.">
@@ -193,6 +194,6 @@ export function DevWebAuthn() {
           </Alert>
         )}
       </Card>
-    </main>
+    </div>
   );
 }

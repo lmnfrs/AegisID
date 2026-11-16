@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
 import { Alert, Button, Card, FormField, Select } from '../components/ui';
 import { DataTable } from '../components/DataTable';
@@ -98,7 +99,7 @@ export function DevUsers() {
   }
 
   return (
-    <main>
+    <div>
       <Card title="Users" desc="Lists users and passkey counts per tenant via /api/dev/tenants/:slug/users.">
         <FormField label="Tenant slug">
           {(fieldProps) => (
@@ -127,7 +128,7 @@ export function DevUsers() {
         )}
         {tenants?.length === 0 && (
           <Alert variant="info" title="No tenants yet">
-            Create one on the <a href="/dev/tenants">tenants page</a> first.
+            Create one on the <Link to="/dev/tenants">tenants page</Link> first.
           </Alert>
         )}
         <Button variant="primary" isLoading={usersLoading} disabled={!slug} onClick={showUsers}>
@@ -152,6 +153,6 @@ export function DevUsers() {
           </DataTable>
         )}
       </Card>
-    </main>
+    </div>
   );
 }

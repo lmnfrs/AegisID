@@ -76,7 +76,7 @@ export function DevTenants() {
   }
 
   return (
-    <main>
+    <div>
       <Card title="Tenants" desc="Create tenants for the passkey test page via /api/dev/tenants.">
         <FormField label="Slug" hint="Lowercase letters, digits and hyphens. Up to 63 characters.">
           {(fieldProps) => (
@@ -139,6 +139,6 @@ export function DevTenants() {
           </DataTable>
         )}
       </Card>
-    </main>
+    </div>
   );
 }

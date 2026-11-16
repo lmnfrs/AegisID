@@ -47,7 +47,7 @@ export function DevShowcase() {
   }, [theme]);
 
   return (
-    <main className="page">
+    <div className="page">
       <header className="top" style={{ gap: 'var(--space-4)' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>    
           <div className="logo-container" style={{ display: 'flex', alignItems: 'center' }}>
@@ -150,6 +150,6 @@ export function DevShowcase() {
           </div>
         </Card>
       </section>
-    </main>
+    </div>
   );
 }

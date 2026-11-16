@@ -35,7 +35,7 @@ export function DevEmail() {
   }
 
   return (
-    <main>
+    <div>
       <Card title="Email test" desc="Sends the test message via POST /t/:slug/api/email/test.">
         <FormField label="Tenant slug">
           {(fieldProps) => (
@@ -81,6 +81,6 @@ export function DevEmail() {
           </Alert>
         )}
       </Card>
-    </main>
+    </div>
   );
 }
