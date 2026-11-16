@@ -16,7 +16,8 @@ import type {
 // DEV-ONLY passkey register / sign-in test. Mounted under /t/:slug/api/auth
 // by src/worker/index.ts.
 //
-// - State lives in D1 (tables from migrations/0001_webauthn.sql).
+// - State lives in D1 (tables from migrations/0001_init.sql): tenants, users,
+//   credentials and webauthn_challenges, all keyed by UUID.
 // - No session or token is issued; sign-in only reports which username matched.
 export const auth = new Hono<{ Bindings: Env }>();
 
@@ -26,10 +27,11 @@ type ChallengeKind = "register" | "login";
 
 type StoredChallenge = {
   challenge: string;
-  username: string | null;
+  userId: string | null;
 };
 
 type StoredCredential = {
+  userId: string;
   username: string;
   userHandle: Uint8Array<ArrayBuffer>;
   credential: WebAuthnCredential;
@@ -53,46 +55,64 @@ function parseTransports(value: string | null): AuthenticatorTransport[] | undef
   return Array.isArray(parsed) ? (parsed as AuthenticatorTransport[]) : undefined;
 }
 
-// Returns the stored handle, creating one if needed; concurrent callers converge.
-async function getOrCreateUserHandle(
+// Dev-only behaviour: tenants are created on first use from their slug, so the
+// test page works against any slug without an admin step. Not a production model.
+async function getOrCreateTenant(db: D1Database, slug: string): Promise<string> {
+  await db
+    .prepare(
+      "INSERT INTO tenants (id, slug, name, created_at) VALUES (?, ?, ?, ?) " +
+        "ON CONFLICT (slug) DO NOTHING",
+    )
+    .bind(crypto.randomUUID(), slug, slug, Date.now())
+    .run();
+  const row = await db
+    .prepare("SELECT id FROM tenants WHERE slug = ?")
+    .bind(slug)
+    .first<{ id: string }>();
+  if (!row) throw new Error("Tenant row missing after insert");
+  return row.id;
+}
+
+// Returns the stored user id and handle, creating the user if needed; concurrent callers converge.
+async function getOrCreateUser(
   db: D1Database,
-  slug: string,
+  tenantId: string,
   username: string,
-): Promise<Uint8Array<ArrayBuffer>> {
+): Promise<{ id: string; userHandle: Uint8Array<ArrayBuffer> }> {
   const fresh = crypto.getRandomValues(new Uint8Array(32));
   await db
     .prepare(
-      "INSERT INTO users (tenant_slug, username, user_handle, created_at) VALUES (?, ?, ?, ?) " +
-        "ON CONFLICT (tenant_slug, username) DO NOTHING",
+      "INSERT INTO users (id, tenant_id, username, user_handle, created_at) VALUES (?, ?, ?, ?, ?) " +
+        "ON CONFLICT (tenant_id, username) DO NOTHING",
     )
-    .bind(slug, username, fresh, Date.now())
+    .bind(crypto.randomUUID(), tenantId, username, fresh, Date.now())
     .run();
   const row = await db
-    .prepare("SELECT user_handle FROM users WHERE tenant_slug = ? AND username = ?")
-    .bind(slug, username)
-    .first<{ user_handle: unknown }>();
+    .prepare("SELECT id, user_handle FROM users WHERE tenant_id = ? AND username = ?")
+    .bind(tenantId, username)
+    .first<{ id: string; user_handle: unknown }>();
   if (!row) throw new Error("User row missing after insert");
-  return toBytes(row.user_handle);
+  return { id: row.id, userHandle: toBytes(row.user_handle) };
 }
 
 async function credentialsOf(
   db: D1Database,
-  slug: string,
-  username: string,
+  tenantId: string,
+  userId: string,
 ): Promise<{ id: string; transports: AuthenticatorTransport[] | undefined }[]> {
   const { results } = await db
-    .prepare("SELECT id, transports FROM credentials WHERE tenant_slug = ? AND username = ?")
-    .bind(slug, username)
+    .prepare("SELECT id, transports FROM credentials WHERE tenant_id = ? AND user_id = ?")
+    .bind(tenantId, userId)
     .all<{ id: string; transports: string | null }>();
   return results.map((r) => ({ id: r.id, transports: parseTransports(r.transports) }));
 }
 
 async function saveChallenge(
   db: D1Database,
-  slug: string,
+  tenantId: string,
   challenge: string,
   kind: ChallengeKind,
-  username?: string,
+  userId?: string,
 ): Promise<string> {
   const now = Date.now();
   const challengeId = crypto.randomUUID();
@@ -100,10 +120,10 @@ async function saveChallenge(
     db.prepare("DELETE FROM webauthn_challenges WHERE expires_at <= ?").bind(now),
     db
       .prepare(
-        "INSERT INTO webauthn_challenges (id, tenant_slug, challenge, kind, username, expires_at) " +
+        "INSERT INTO webauthn_challenges (id, tenant_id, challenge, kind, user_id, expires_at) " +
           "VALUES (?, ?, ?, ?, ?, ?)",
       )
-      .bind(challengeId, slug, challenge, kind, username ?? null, now + CHALLENGE_TTL_MS),
+      .bind(challengeId, tenantId, challenge, kind, userId ?? null, now + CHALLENGE_TTL_MS),
   ]);
   return challengeId;
 }
@@ -112,50 +132,52 @@ async function saveChallenge(
 async function takeChallenge(
   db: D1Database,
   id: unknown,
-  slug: string,
+  tenantId: string,
   kind: ChallengeKind,
 ): Promise<StoredChallenge | null> {
   if (typeof id !== "string") return null;
   const row = await db
     .prepare(
       "DELETE FROM webauthn_challenges WHERE id = ? " +
-        "RETURNING tenant_slug, challenge, kind, username, expires_at",
+        "RETURNING tenant_id, challenge, kind, user_id, expires_at",
     )
     .bind(id)
     .first<{
-      tenant_slug: string;
+      tenant_id: string;
       challenge: string;
       kind: string;
-      username: string | null;
+      user_id: string | null;
       expires_at: number;
     }>();
   if (!row) return null;
-  if (row.expires_at <= Date.now() || row.tenant_slug !== slug || row.kind !== kind) return null;
-  return { challenge: row.challenge, username: row.username };
+  if (row.expires_at <= Date.now() || row.tenant_id !== tenantId || row.kind !== kind) return null;
+  return { challenge: row.challenge, userId: row.user_id };
 }
 
 async function findCredential(
   db: D1Database,
-  slug: string,
+  tenantId: string,
   id: string,
 ): Promise<StoredCredential | null> {
   const row = await db
     .prepare(
-      "SELECT c.id, c.username, c.public_key, c.counter, c.transports, u.user_handle " +
-        "FROM credentials c JOIN users u ON u.tenant_slug = c.tenant_slug AND u.username = c.username " +
-        "WHERE c.tenant_slug = ? AND c.id = ?",
+      "SELECT c.id, c.user_id, c.public_key, c.counter, c.transports, u.username, u.user_handle " +
+        "FROM credentials c JOIN users u ON u.tenant_id = c.tenant_id AND u.id = c.user_id " +
+        "WHERE c.tenant_id = ? AND c.id = ?",
     )
-    .bind(slug, id)
+    .bind(tenantId, id)
     .first<{
       id: string;
-      username: string;
+      user_id: string;
       public_key: unknown;
       counter: number;
       transports: string | null;
+      username: string;
       user_handle: unknown;
     }>();
   if (!row) return null;
   return {
+    userId: row.user_id,
     username: row.username,
     userHandle: toBytes(row.user_handle),
     credential: {
@@ -199,20 +221,21 @@ auth.post("/register/options", async (c) => {
   if (!username) return c.json({ ok: false, error: "username must be 1-64 characters" }, 400);
 
   try {
-    const userID = await getOrCreateUserHandle(c.env.DB, slug, username);
-    const existing = await credentialsOf(c.env.DB, slug, username);
+    const tenantId = await getOrCreateTenant(c.env.DB, slug);
+    const user = await getOrCreateUser(c.env.DB, tenantId, username);
+    const existing = await credentialsOf(c.env.DB, tenantId, user.id);
 
     const options = await generateRegistrationOptions({
       rpName: c.env.RP_NAME,
       rpID: c.env.RP_ID,
       userName: username,
-      userID,
+      userID: user.userHandle,
       attestationType: "none",
       authenticatorSelection: { residentKey: "required", userVerification: "required" },
       excludeCredentials: existing,
     });
 
-    const challengeId = await saveChallenge(c.env.DB, slug, options.challenge, "register", username);
+    const challengeId = await saveChallenge(c.env.DB, tenantId, options.challenge, "register", user.id);
     return c.json({ challengeId, options });
   } catch (error) {
     return c.json({ ok: false, error: errorMessage(error) }, 500);
@@ -227,12 +250,13 @@ auth.post("/register/verify", async (c) => {
   if (!isObject(body.response)) return c.json({ ok: false, error: "response is required" }, 400);
   const response = body.response as unknown as RegistrationResponseJSON;
 
-  const stored = await takeChallenge(c.env.DB, body.challengeId, slug, "register");
-  if (!stored || !stored.username) {
-    return c.json({ ok: false, error: "Unknown, expired or already used challenge" }, 400);
-  }
-
   try {
+    const tenantId = await getOrCreateTenant(c.env.DB, slug);
+    const stored = await takeChallenge(c.env.DB, body.challengeId, tenantId, "register");
+    if (!stored || !stored.userId) {
+      return c.json({ ok: false, error: "Unknown, expired or already used challenge" }, 400);
+    }
+
     const result = await verifyRegistrationResponse({
       response,
       expectedChallenge: stored.challenge,
@@ -245,13 +269,13 @@ auth.post("/register/verify", async (c) => {
     const { credential } = result.registrationInfo;
     await c.env.DB
       .prepare(
-        "INSERT INTO credentials (tenant_slug, id, username, public_key, counter, transports, created_at) " +
+        "INSERT INTO credentials (id, tenant_id, user_id, public_key, counter, transports, created_at) " +
           "VALUES (?, ?, ?, ?, ?, ?, ?)",
       )
       .bind(
-        slug,
         credential.id,
-        stored.username,
+        tenantId,
+        stored.userId,
         credential.publicKey,
         credential.counter,
         credential.transports ? JSON.stringify(credential.transports) : null,
@@ -277,8 +301,20 @@ auth.post("/login/options", async (c) => {
   }
 
   try {
-    // Empty allowCredentials = discoverable credential flow.
-    const allowCredentials = username ? await credentialsOf(c.env.DB, slug, username) : [];
+    const tenantId = await getOrCreateTenant(c.env.DB, slug);
+
+    let userId: string | undefined;
+    if (username) {
+      const row = await c.env.DB
+        .prepare("SELECT id FROM users WHERE tenant_id = ? AND username = ?")
+        .bind(tenantId, username)
+        .first<{ id: string }>();
+      userId = row?.id;
+    }
+
+    // Empty allowCredentials = discoverable credential flow. An unknown username
+    // yields no userId, so the challenge is not bound to any user.
+    const allowCredentials = userId ? await credentialsOf(c.env.DB, tenantId, userId) : [];
 
     const options = await generateAuthenticationOptions({
       rpID: c.env.RP_ID,
@@ -286,7 +322,7 @@ auth.post("/login/options", async (c) => {
       userVerification: "required",
     });
 
-    const challengeId = await saveChallenge(c.env.DB, slug, options.challenge, "login", username);
+    const challengeId = await saveChallenge(c.env.DB, tenantId, options.challenge, "login", userId);
     return c.json({ challengeId, options });
   } catch (error) {
     return c.json({ ok: false, error: errorMessage(error) }, 500);
@@ -301,17 +337,18 @@ auth.post("/login/verify", async (c) => {
   if (!isObject(body.response)) return c.json({ ok: false, error: "response is required" }, 400);
   const response = body.response as unknown as AuthenticationResponseJSON;
 
-  const stored = await takeChallenge(c.env.DB, body.challengeId, slug, "login");
-  if (!stored) {
-    return c.json({ ok: false, error: "Unknown, expired or already used challenge" }, 400);
-  }
-
   try {
+    const tenantId = await getOrCreateTenant(c.env.DB, slug);
+    const stored = await takeChallenge(c.env.DB, body.challengeId, tenantId, "login");
+    if (!stored) {
+      return c.json({ ok: false, error: "Unknown, expired or already used challenge" }, 400);
+    }
+
     const known = typeof response.id === "string"
-      ? await findCredential(c.env.DB, slug, response.id)
+      ? await findCredential(c.env.DB, tenantId, response.id)
       : null;
     if (!known) return c.json({ ok: false, error: "Unknown credential" }, 400);
-    if (stored.username && stored.username !== known.username) {
+    if (stored.userId && stored.userId !== known.userId) {
       return c.json({ ok: false, error: "Credential does not belong to this username" }, 400);
     }
     const presentedHandle = response.response?.userHandle;
@@ -333,9 +370,9 @@ auth.post("/login/verify", async (c) => {
 
     await c.env.DB
       .prepare(
-        "UPDATE credentials SET counter = ?, last_used_at = ? WHERE tenant_slug = ? AND id = ?",
+        "UPDATE credentials SET counter = ?, last_used_at = ? WHERE tenant_id = ? AND id = ?",
       )
-      .bind(result.authenticationInfo.newCounter, Date.now(), slug, known.credential.id)
+      .bind(result.authenticationInfo.newCounter, Date.now(), tenantId, known.credential.id)
       .run();
     return c.json({ ok: true, username: known.username });
   } catch (error) {
