@@ -1,0 +1,4 @@
+# Copy to .dev.vars for local development (pnpm dev). Not secret.
+RP_NAME=AegisID
+RP_ID=localhost
+RP_ORIGIN=http://localhost:5173

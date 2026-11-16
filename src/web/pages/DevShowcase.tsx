@@ -1,10 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Button } from '../components/ui/Button';
-import { Input } from '../components/ui/Input';
-import { FormField } from '../components/ui/FormField';
-import { Alert } from '../components/ui/Alert';
-import { Card } from '../components/ui/Card';
-import { Spinner } from '../components/ui/Spinner';
+import { Alert, Button, Card, FormField, Input, Spinner } from '../components/ui';
 import LogoLight from '../assets/LogoLight.png';
 import LogoDark from '../assets/LogoDark.png';
 
@@ -52,7 +47,7 @@ export function DevShowcase() {
   }, [theme]);
 
   return (
-    <main className="page">
+    <div className="page">
       <header className="top" style={{ gap: 'var(--space-4)' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>    
           <div className="logo-container" style={{ display: 'flex', alignItems: 'center' }}>
@@ -155,6 +150,6 @@ export function DevShowcase() {
           </div>
         </Card>
       </section>
-    </main>
+    </div>
   );
 }

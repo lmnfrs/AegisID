@@ -7,7 +7,7 @@ A self-hosted, multi-tenant OpenID Connect identity provider with passkey-only l
 
 ## Goals and scope
 
-Everything below is **planned**. Today the repo only has a health endpoint and the default Vite page. See [Project structure](#project-structure).
+The list below is **planned**. Today the repo has a health endpoint, a public home page at `/`, and dev-only tooling: tenant and user lists, a passkey register and sign-in test backed by D1, and an email send test. None of this is real authentication. See [Project structure](#project-structure).
 
 - Multi-tenant organizations, with tenant isolation (planned)
 - OpenID Connect (OIDC) Authorization Code flow with PKCE (planned)
@@ -24,17 +24,17 @@ The design targets NIST SP 800-63B-4 AAL2 (an assurance level for multi-factor a
 
 ## Tech stack
 
-Only what is in [package.json](package.json) today:
+Only what the code uses today:
 
-- [Hono](https://hono.dev): small web framework for the API
-- [Cloudflare Workers](https://developers.cloudflare.com/workers/): serverless runtime that runs the API
-- [Vite](https://vite.dev) and [React](https://react.dev): build tool and UI library for the web app
-- [TypeScript](https://www.typescriptlang.org): typed JavaScript
-- [Zod](https://zod.dev): input validation
-- [Oxlint](https://oxc.rs): linter
-- [Wrangler](https://developers.cloudflare.com/workers/wrangler/): Cloudflare command-line tool
-
-Planned: Cloudflare D1 (SQLite database). No database is configured yet.
+- [Cloudflare Workers](https://developers.cloudflare.com/workers/): runs the server code
+- [Hono](https://hono.dev): web framework for the Worker routes
+- [React](https://react.dev) 19 and [react-router-dom](https://reactrouter.com): single-page app, built with [Vite](https://vite.dev) and served as Worker static assets
+- [Cloudflare D1](https://developers.cloudflare.com/d1/) (SQLite): database, bound as `DB`
+- [Cloudflare Email Sending](https://developers.cloudflare.com/email-service/): bound as `EMAIL`
+- [SimpleWebAuthn](https://simplewebauthn.dev) (`@simplewebauthn/server` and `@simplewebauthn/browser`, v14): passkey registration and sign-in
+- [DataTables](https://datatables.net) (`datatables.net-react`, `datatables.net-dt`): tables on the dev pages
+- [TypeScript](https://www.typescriptlang.org), [Oxlint](https://oxc.rs) and [Wrangler](https://developers.cloudflare.com/workers/wrangler/)
+- [pnpm](https://pnpm.io): package manager
 
 ## Architecture
 
@@ -42,62 +42,85 @@ One Worker serves one origin. Tenants are separated by path: `/t/{slug}/...`. Th
 
 | Route | Handled by | Status |
 | --- | --- | --- |
-| `/t/{slug}/login`, `/enroll`, `/recover` | SPA (static assets) | Served as the SPA fallback page. No real screens yet. |
-| `/t/{slug}/api/*` | Worker (Hono) | Only `/t/{slug}/api/health` exists. |
-| `/t/{slug}/.well-known/openid-configuration` | Worker | Planned. Returns 404 today. |
-| `/healthz` | Worker | Works. |
+| `/healthz` | Worker | Returns `ok` |
+| `/t/{slug}/api/health` | Worker | Returns `{ "ok": true, "tenant": "<slug>" }` |
+| `/t/{slug}/api/email/*`, `/t/{slug}/api/auth/*`, `/api/dev/tenants*` | Worker | Dev-only. See [Dev routes](#dev-routes) |
+| `/t/{slug}/.well-known/*` | Worker | Planned. Returns 404 today |
+| `/`, `/dev/*` | SPA (static assets) | Home page and dev pages |
+| Any other path | SPA (static assets) | Falls back to the SPA page |
 
-The SPA is the single-page web app built by Vite. In [wrangler.jsonc](wrangler.jsonc), `not_found_handling: "single-page-application"` makes unknown paths return the SPA. `run_worker_first` lists paths that skip the static-asset lookup and go to the Worker first. Without it, the assets layer would answer first. These are the API, `.well-known` and `/healthz` paths.
+In [wrangler.jsonc](wrangler.jsonc), `run_worker_first` lists the paths that go to the Worker before the static-assets lookup. `not_found_handling: "single-page-application"` returns the SPA for every other unknown path. A new Worker route must be added to `run_worker_first`, or the SPA will answer it.
 
-## Project structure
-
-```
-src/
-  web/        React single-page app (still the Vite starter template)
-  worker/
-    index.ts  Hono app: /healthz and /t/:slug/api/health
-public/       Static files (icons)
-wrangler.jsonc  Worker and assets config
-vite.config.ts  Vite config with the React and Cloudflare plugins
-```
-
-<!-- TODO(maintainer): list planned folders (routes, db, migrations, tests, ...) once the layout is decided. -->
-
-## Getting started
+## Local development
 
 Prerequisites:
 
-- Node.js. Verified with v26.8.1. <!-- TODO(maintainer): no "engines" field in package.json; set the supported Node version. -->
-- pnpm 12.11.2 (from `packageManager` in package.json). Corepack can install it: `corepack enable`.
+- Node.js. Verified with v26.8.1. `package.json` has no `engines` field.
+- pnpm 12.21.0, from the `packageManager` field in `package.json`. Corepack can install it: `corepack enable`.
 
 ```sh
 git clone https://github.com/lmnfrs/AegisID.git
 cd AegisID
 pnpm install
+cp .dev.vars.example .dev.vars
+pnpm exec wrangler d1 migrations apply DB --local
 pnpm dev
 ```
 
-<!-- TODO(maintainer): add the repository URL. -->
+Then open <http://localhost:5173/dev>.
 
-`pnpm dev` starts Vite at http://localhost:5173/ and runs the Worker inside it. Daily development uses `pnpm dev`, not `wrangler dev`.
+- `pnpm install` may fail with `ERR_PNPM_IGNORED_BUILDS`. If it does, run `pnpm approve-builds` and allow `esbuild` and `workerd`. This is already set in `pnpm-workspace.yaml`. Both packages need native binaries. esbuild is the JavaScript bundler. workerd is the Workers runtime used locally.
+- `.dev.vars` sets `RP_NAME`, `RP_ID` and `RP_ORIGIN` for local work. Values in `.dev.vars` override the `vars` in `wrangler.jsonc`. `.dev.vars` is gitignored. `.dev.vars.example` is not secret and is committed.
+- Passkeys work locally only at <http://localhost:5173>. Do not use `127.0.0.1` or a LAN IP. The passkey origin must match `RP_ORIGIN`.
+- `pnpm dev` is the daily command. Do not use `wrangler dev` for daily work.
+- The `EMAIL` binding is set to `remote: true`. The email test sends real mail, even in local development.
 
-Verified on the dev server:
-
-- http://localhost:5173/healthz returns `ok`
-- http://localhost:5173/t/demo/api/health returns `{"ok":true,"tenant":"demo"}`
-- http://localhost:5173/t/demo/login returns the SPA page (still the Vite starter content)
-
-Troubleshooting: if pnpm reports `ERR_PNPM_IGNORED_BUILDS`, run `pnpm approve-builds` and allow `esbuild` and `workerd`. Both download or build native binaries. esbuild is a fast JavaScript bundler. workerd is the Cloudflare Workers runtime used locally.
-
-## Scripts
+### Scripts
 
 | Script | What it does |
 | --- | --- |
-| `pnpm dev` | Start the Vite dev server with the Worker |
-| `pnpm build` | Type-check with `tsc -b`, then build with Vite |
-| `pnpm lint` | Run Oxlint |
+| `pnpm dev` | Start the Vite dev server with the Worker at <http://localhost:5173> |
+| `pnpm build` | Type-check with `tsc -b`, then build with Vite. This is the only type-check. |
+| `pnpm lint` | Run Oxlint (config in `.oxlintrc.json`) |
+| `pnpm cf-typegen` | Run `wrangler types` to regenerate `worker-configuration.d.ts`. Run it after you change bindings or `vars` |
 | `pnpm preview` | Build, then run `wrangler dev` on the build |
 | `pnpm deploy` | Build, then run `wrangler deploy` |
+
+No test runner is configured yet.
+
+## Dev routes
+
+> **Dev routes have no authentication.** They can create tenants, list users, run a passkey test and send email. They must never be enabled in production.
+
+The routes are mounted only when `import.meta.env.DEV` is true (the dev server) or when the build sets `VITE_SHOW_DEV=true`. A build with `VITE_SHOW_DEV=true` exposes them. Do not set it for a production build.
+
+The dev pages are at `/dev/*`. The Worker routes are in `src/worker/dev/`.
+
+## Project structure
+
+```text
+src/
+  worker/
+    index.ts      Hono app and route mounting
+    dev/          Dev-only routes: tenants.ts, webauthn.ts, email.ts
+  web/
+    App.tsx       Routes: home page and the /dev shell
+    main.tsx      React entry point
+    pages/        Home.tsx and the dev pages (lazy-loaded), devPages.ts
+    components/   ui.tsx (shared UI), DataTable.tsx
+    lib/          Client helpers (tenants.ts)
+migrations/       D1 SQL migrations (0001_init.sql)
+docs/             Design decisions. See docs/README.md
+public/           Static files
+wrangler.jsonc    Worker, assets, D1, email and vars config
+vite.config.ts    Vite with the React and Cloudflare plugins
+```
+
+<!-- TODO(maintainer): list planned folders (routes, db, tests, ...) once the layout is decided. -->
+
+## Design decisions
+
+Design decisions are recorded in [docs/README.md](docs/README.md).
 
 ## Deployment
 

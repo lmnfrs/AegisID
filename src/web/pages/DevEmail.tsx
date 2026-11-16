@@ -1,9 +1,5 @@
 import { useState } from 'react';
-import { Button } from '../components/ui/Button';
-import { Input } from '../components/ui/Input';
-import { FormField } from '../components/ui/FormField';
-import { Alert } from '../components/ui/Alert';
-import { Card } from '../components/ui/Card';
+import { Alert, Button, Card, FormField, Input } from '../components/ui';
 
 type Result =
   | { kind: 'success'; messageId: string }
@@ -39,7 +35,7 @@ export function DevEmail() {
   }
 
   return (
-    <main>
+    <div>
       <Card title="Email test" desc="Sends the test message via POST /t/:slug/api/email/test.">
         <FormField label="Tenant slug">
           {(fieldProps) => (
@@ -85,6 +81,6 @@ export function DevEmail() {
           </Alert>
         )}
       </Card>
-    </main>
+    </div>
   );
 }

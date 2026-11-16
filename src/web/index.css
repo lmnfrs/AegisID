@@ -88,6 +88,7 @@ h1, h2, h3 { margin: 0; line-height: 1.25; }
 .input:hover { border-color: var(--fg-muted); }
 .input[aria-invalid="true"] { border-color: var(--danger); }
 .input[disabled] { opacity: .55; cursor: not-allowed; background: var(--bg); }
+select.input { cursor: pointer; }
 
 /* ===== Card ===== */
 .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: var(--space-6); }
@@ -123,3 +124,39 @@ section > h2 { font-size: 18px; margin-bottom: var(--space-3); padding-bottom: v
 .sw code { display: block; padding: var(--space-2); font: 12px var(--mono); color: var(--fg-muted); }
 .label { font-size: 13px; color: var(--fg-muted); margin-bottom: var(--space-2); }
 .signin { max-width: 380px; margin: 0 auto; }
+
+/* ===== DataTables (components/DataTable.tsx); scoped so only that table is affected ===== */
+.dt-container {
+  color: var(--fg);
+  --dt-control_color: var(--fg);
+  --dt-header_border: 1px solid var(--border);
+  --dt-body_border: 1px solid var(--border);
+  --dt-footer_border: 1px solid var(--border);
+  --dt-input_border: 1px solid var(--border);
+  --dt-input_background: var(--surface);
+  --dt-input_color: var(--fg);
+  --dt-paging-button_color-disabled: var(--fg-muted);
+  --dt-paging-button_background-current: var(--bg);
+  --dt-paging-button_background-hover: var(--bg);
+  --dt-paging-button_color-hover: var(--fg);
+  --dt-paging-button_background-current-hover: var(--bg);
+  --dt-paging-button_color-current-hover: var(--fg);
+}
+.dt-container table.dataTable { color: var(--fg); background: var(--surface); }
+.dt-container table.dataTable tbody tr { background: var(--surface); }
+.dt-container table.dataTable thead th,
+.dt-container table.dataTable tbody td { border-color: var(--border); }
+.dt-container table.dataTable thead th { color: var(--fg); }
+.dt-container .dt-input:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+/* ===== Dev layout ===== */
+.dev-nav { border-bottom: 1px solid var(--border); background: var(--surface); }
+.dev-nav nav { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-4); max-width: 880px; margin: 0 auto; padding: var(--space-3) var(--space-4); }
+.dev-nav a { color: var(--fg-muted); text-decoration: none; padding: var(--space-1) 0; border-bottom: 2px solid transparent; }
+.dev-nav a:hover { color: var(--fg); }
+.dev-nav a.active { color: var(--fg); font-weight: 700; text-decoration: underline; text-underline-offset: 6px; text-decoration-thickness: 2px; }
+
+/* ===== Home ===== */
+.home { text-align: center; }
+.home__logo { width: 96px; height: auto; margin-bottom: var(--space-4); }
+.home__lead { font-size: 18px; margin: var(--space-3) 0; }
+.home__note { color: var(--fg-muted); }
