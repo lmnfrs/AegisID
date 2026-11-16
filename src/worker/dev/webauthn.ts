@@ -179,6 +179,22 @@ async function findCredential(
   };
 }
 
+// RP_ORIGIN is normally an exact origin. Previews set it to "https://*.<host>"
+// because each branch runs on <branch>.<host>. The wildcard matches exactly one
+// DNS label and resolves to the origin this request was served on, so the
+// browser-reported origin must still equal the host the Worker is answering.
+// No match returns the pattern itself, which never equals a real origin.
+function expectedOrigin(configured: string, requestUrl: string): string {
+  const at = configured.indexOf("://*.");
+  if (at === -1) return configured;
+  const scheme = configured.slice(0, at);
+  const suffix = configured.slice(at + 4);
+  const req = new URL(requestUrl);
+  if (req.protocol !== `${scheme}:` || !req.host.endsWith(suffix)) return configured;
+  const label = req.host.slice(0, -suffix.length);
+  return /^[a-z0-9-]{1,63}$/.test(label) ? req.origin : configured;
+}
+
 function validSlug(slug: string): boolean {
   return /^[a-z0-9-]{1,63}$/.test(slug);
 }
@@ -252,7 +268,7 @@ auth.post("/register/verify", async (c) => {
     const result = await verifyRegistrationResponse({
       response,
       expectedChallenge: stored.challenge,
-      expectedOrigin: c.env.RP_ORIGIN,
+      expectedOrigin: expectedOrigin(c.env.RP_ORIGIN, c.req.url),
       expectedRPID: c.env.RP_ID,
       requireUserVerification: true,
     });
@@ -355,7 +371,7 @@ auth.post("/login/verify", async (c) => {
     const result = await verifyAuthenticationResponse({
       response,
       expectedChallenge: stored.challenge,
-      expectedOrigin: c.env.RP_ORIGIN,
+      expectedOrigin: expectedOrigin(c.env.RP_ORIGIN, c.req.url),
       expectedRPID: c.env.RP_ID,
       credential: known.credential,
       requireUserVerification: true,

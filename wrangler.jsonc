@@ -22,6 +22,11 @@
     }
   ],
   "previews": {
+    "vars": {
+      "RP_ID": "aegis.lmnfrs.org",
+      "RP_NAME": "AegisID (preview)",
+      "RP_ORIGIN": "https://*.aegis.lmnfrs.org"
+    },
     "d1_databases": [
       {
         "binding": "DB",
