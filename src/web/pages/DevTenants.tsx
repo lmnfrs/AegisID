@@ -4,6 +4,8 @@ import { Input } from '../components/ui/Input';
 import { FormField } from '../components/ui/FormField';
 import { Alert } from '../components/ui/Alert';
 import { Card } from '../components/ui/Card';
+import { DataTable } from '../components/DataTable';
+import type { DataTableColumns, DataTableOptions } from '../components/DataTable';
 import { invalidateTenants, loadTenants } from '../lib/tenants';
 import type { Tenant } from '../lib/tenants';
 
@@ -12,6 +14,17 @@ type Result =
   | { kind: 'error'; message: string };
 
 type CreateBody = { ok?: boolean; error?: string; tenant?: Tenant };
+
+const tenantColumns: DataTableColumns = [
+  { data: 'slug' },
+  { data: 'name' },
+  { data: 'id' },
+  { data: 'createdAt', render: (value: number) => new Date(value).toLocaleString() },
+];
+
+const tenantOptions: DataTableOptions = {
+  language: { emptyTable: 'No tenants yet.' },
+};
 
 export function DevTenants() {
   // null means the list is hidden until the user asks for it.
@@ -117,21 +130,17 @@ export function DevTenants() {
             {listError}
           </Alert>
         )}
-        {tenants !== null && !listError && tenants.length === 0 && (
-          <p className="card__desc">No tenants yet.</p>
-        )}
-        {tenants !== null && tenants.length > 0 && (
-          <ul className="stack" style={{ listStyle: 'none', margin: 0, padding: 0 }}>
-            {tenants.map((tenant) => (
-              <li key={tenant.id}>
-                <div className="row">
-                  <strong>{tenant.slug}</strong>
-                  <span>{tenant.name}</span>
-                </div>
-                <div className="label">{tenant.id}</div>
-              </li>
-            ))}
-          </ul>
+        {tenants !== null && (
+          <DataTable data={tenants} columns={tenantColumns} options={tenantOptions} className="display">
+            <thead>
+              <tr>
+                <th>Slug</th>
+                <th>Name</th>
+                <th>ID</th>
+                <th>Created</th>
+              </tr>
+            </thead>
+          </DataTable>
         )}
       </Card>
     </main>

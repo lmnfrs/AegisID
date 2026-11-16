@@ -181,6 +181,12 @@ importers:
       '@simplewebauthn/server':
         specifier: ^14.1.0
         version: 14.1.0
+      datatables.net-dt:
+        specifier: ^3.1.5
+        version: 3.1.5
+      datatables.net-react:
+        specifier: ^2.0.0
+        version: 2.0.0(datatables.net@3.1.5)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       hono:
         specifier: ^4.13.13
         version: 4.13.13
@@ -964,6 +970,19 @@ packages:
 
   csstype@3.2.3:
     resolution: {integrity: sha512-z1HGKcYy2xA8AGQfwrn0PAy+PB7X/GSj3UVJW9qKyn43xWa+gl5nXmU4qqLMRzWVLFC8KusUX8T/0kCiOYpAIQ==}
+
+  datatables.net-dt@3.1.5:
+    resolution: {integrity: sha512-JXjpuKJmTZhndDCmi9Pz0Zkxd6sodYaMaE9KYc3x0YOGIerbRlnP0s1EJ2MWBtAkmJ0AbZo5hl8GahreMAd4hg==}
+
+  datatables.net-react@2.0.0:
+    resolution: {integrity: sha512-Q8HJ8AT/y9R70eW92VMUXI1FTc4teC09gs+AQ4mgR0JealjT8gC24TBiU2Ow6/VldEZE3Wi+al1HGXsV7R1qhg==}
+    peerDependencies:
+      datatables.net: ^3.0.0
+      react: ^18.3.1 || ^19
+      react-dom: ^18.3.1 || ^19
+
+  datatables.net@3.1.5:
+    resolution: {integrity: sha512-phu9fVz1cOhD7kZDO5Ztj15qwghCkmdwX5AezLi+PxfMtnFAq0itpewvXzdwdr6bOwPqO2zuXsXWUU5x3wQptw==}
 
   detect-libc@2.1.2:
     resolution: {integrity: sha512-Btj2BOOO83o3WyH59e8MgXsxEQVcarkUOpEYrubB0urwnN10yQ364rsiByU11nZlqWYZm05i/of7io4mzihBtQ==}
@@ -1815,6 +1834,18 @@ snapshots:
   cookie@1.1.1: {}
 
   csstype@3.2.3: {}
+
+  datatables.net-dt@3.1.5:
+    dependencies:
+      datatables.net: 3.1.5
+
+  datatables.net-react@2.0.0(datatables.net@3.1.5)(react-dom@19.3.1(react@19.3.1))(react@19.3.1):
+    dependencies:
+      datatables.net: 3.1.5
+      react: 19.3.1
+      react-dom: 19.3.1(react@19.3.1)
+
+  datatables.net@3.1.5: {}
 
   detect-libc@2.1.2: {}
 

@@ -27,6 +27,53 @@ devTenants.get("/", async (c) => {
   }
 });
 
+type UserRow = {
+  id: string;
+  username: string;
+  created_at: number;
+  credential_count: number;
+  last_used_at: number | null;
+};
+
+// Lists users of one tenant. Never returns user_handle or public_key.
+devTenants.get("/:slug/users", async (c) => {
+  const slug = c.req.param("slug");
+  if (!SLUG_PATTERN.test(slug)) return c.json({ ok: false, error: "Invalid tenant slug" }, 400);
+
+  try {
+    const tenant = await c.env.DB
+      .prepare("SELECT id FROM tenants WHERE slug = ?")
+      .bind(slug)
+      .first<{ id: string }>();
+    if (!tenant) return c.json({ ok: false, error: "Unknown tenant" }, 404);
+
+    const { results } = await c.env.DB
+      .prepare(
+        "SELECT u.id, u.username, u.created_at, " +
+          "COUNT(c.id) AS credential_count, MAX(c.last_used_at) AS last_used_at " +
+          "FROM users u " +
+          "LEFT JOIN credentials c ON c.tenant_id = u.tenant_id AND c.user_id = u.id " +
+          "WHERE u.tenant_id = ? " +
+          "GROUP BY u.id " +
+          "ORDER BY u.username",
+      )
+      .bind(tenant.id)
+      .all<UserRow>();
+
+    return c.json({
+      users: results.map((row) => ({
+        id: row.id,
+        username: row.username,
+        createdAt: row.created_at,
+        credentialCount: row.credential_count,
+        lastUsedAt: row.last_used_at ?? null,
+      })),
+    });
+  } catch (error) {
+    return c.json({ ok: false, error: errorMessage(error) }, 500);
+  }
+});
+
 devTenants.post("/", async (c) => {
   const input = (await c.req.json<{ slug?: unknown; name?: unknown }>().catch(() => null)) ?? {};
 

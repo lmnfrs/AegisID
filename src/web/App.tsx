@@ -5,6 +5,7 @@ import { DevShowcase } from './pages/DevShowcase';
 import { DevEmail } from './pages/DevEmail';
 import { DevWebAuthn } from './pages/DevWebAuthn';
 import { DevTenants } from './pages/DevTenants';
+import { DevUsers } from './pages/DevUsers';
 import { DevIndex } from './pages/DevIndex';
 
 export default function App() {
@@ -30,6 +31,10 @@ export default function App() {
         {(import.meta.env.DEV || import.meta.env.VITE_SHOW_DEV === 'true') && (
           // Dev-only tenant list and create page
           <Route path="/dev/tenants" element={<DevTenants />} />
+        )}
+        {(import.meta.env.DEV || import.meta.env.VITE_SHOW_DEV === 'true') && (
+          // Dev-only user list per tenant
+          <Route path="/dev/users" element={<DevUsers />} />
         )}
       </Routes>
     </BrowserRouter>
