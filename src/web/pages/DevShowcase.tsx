@@ -1,10 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Button } from '../components/ui/Button';
-import { Input } from '../components/ui/Input';
-import { FormField } from '../components/ui/FormField';
-import { Alert } from '../components/ui/Alert';
-import { Card } from '../components/ui/Card';
-import { Spinner } from '../components/ui/Spinner';
+import { Alert, Button, Card, FormField, Input, Spinner } from '../components/ui';
 import LogoLight from '../assets/LogoLight.png';
 import LogoDark from '../assets/LogoDark.png';
 

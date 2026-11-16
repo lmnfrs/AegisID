@@ -1,9 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Button } from '../components/ui/Button';
-import { FormField } from '../components/ui/FormField';
-import { Select } from '../components/ui/Select';
-import { Alert } from '../components/ui/Alert';
-import { Card } from '../components/ui/Card';
+import { Alert, Button, Card, FormField, Select } from '../components/ui';
 import { DataTable } from '../components/DataTable';
 import type { DataTableColumns, DataTableOptions } from '../components/DataTable';
 import { loadTenants } from '../lib/tenants';

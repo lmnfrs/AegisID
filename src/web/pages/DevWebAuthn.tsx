@@ -4,12 +4,7 @@ import type {
   PublicKeyCredentialCreationOptionsJSON,
   PublicKeyCredentialRequestOptionsJSON,
 } from '@simplewebauthn/browser';
-import { Button } from '../components/ui/Button';
-import { Input } from '../components/ui/Input';
-import { Select } from '../components/ui/Select';
-import { FormField } from '../components/ui/FormField';
-import { Alert } from '../components/ui/Alert';
-import { Card } from '../components/ui/Card';
+import { Alert, Button, Card, FormField, Input, Select } from '../components/ui';
 import { loadTenants } from '../lib/tenants';
 import type { Tenant } from '../lib/tenants';
 

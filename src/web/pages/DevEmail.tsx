@@ -1,9 +1,5 @@
 import { useState } from 'react';
-import { Button } from '../components/ui/Button';
-import { Input } from '../components/ui/Input';
-import { FormField } from '../components/ui/FormField';
-import { Alert } from '../components/ui/Alert';
-import { Card } from '../components/ui/Card';
+import { Alert, Button, Card, FormField, Input } from '../components/ui';
 
 type Result =
   | { kind: 'success'; messageId: string }
