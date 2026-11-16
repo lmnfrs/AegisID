@@ -1,0 +1,25 @@
+
+name: Sync Preview Branch
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: master
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Sync preview with master
+        run: |
+          git push origin HEAD:refs/heads/preview --force
