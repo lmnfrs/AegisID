@@ -107,7 +107,7 @@ export function DevWebAuthn() {
     <main>
       <Card
         title="Passkey test"
-        desc="Registers and uses a passkey via /t/:slug/api/auth. Credentials are kept in Worker memory only and are lost on restart."
+        desc="Registers and uses a passkey via /t/:slug/api/auth. Credentials are stored in the local D1 database."
       >
         <FormField label="Tenant slug">
           {(fieldProps) => (
