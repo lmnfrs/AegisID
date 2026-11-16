@@ -1,16 +1,16 @@
 import { Hono } from "hono";
 import { isoBase64URL } from "@simplewebauthn/server/helpers";
 import {
-  generateAuthenticationOptions,
-  generateRegistrationOptions,
-  verifyAuthenticationResponse,
-  verifyRegistrationResponse,
+    generateAuthenticationOptions,
+    generateRegistrationOptions,
+    verifyAuthenticationResponse,
+    verifyRegistrationResponse,
 } from "@simplewebauthn/server";
 import type {
-  AuthenticationResponseJSON,
-  RegistrationResponseJSON,
-  WebAuthnCredential,
-  AuthenticatorTransport,
+    AuthenticationResponseJSON,
+    RegistrationResponseJSON,
+    WebAuthnCredential,
+    AuthenticatorTransport,
 } from "@simplewebauthn/server";
 
 // DEV-ONLY passkey register / sign-in test. Mounted under /t/:slug/api/auth
