@@ -5,11 +5,16 @@ import { DevShowcase } from './pages/DevShowcase';
 import { DevEmail } from './pages/DevEmail';
 import { DevWebAuthn } from './pages/DevWebAuthn';
 import { DevTenants } from './pages/DevTenants';
+import { DevIndex } from './pages/DevIndex';
 
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
+        {(import.meta.env.DEV || import.meta.env.VITE_SHOW_DEV === 'true') && (
+          // Dev-only index linking to all dev pages
+          <Route path="/dev" element={<DevIndex />} />
+        )}
         {(import.meta.env.DEV || import.meta.env.VITE_SHOW_DEV === 'true') && (
            // Dev-only showcase of UI components
           <Route path="/dev/components" element={<DevShowcase />} />
