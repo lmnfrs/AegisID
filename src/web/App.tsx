@@ -1,6 +1,7 @@
 import { lazy } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { DevLayout } from './pages/DevLayout';
+import { Home } from './pages/Home';
 import './App.css'
 
 // Dev pages are lazy-loaded so their code (and heavy deps such as DataTables)
@@ -19,6 +20,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/" element={<Home />} />
         {showDev && (
           // Dev shell: one nav bar, every dev page rendered in its Outlet (no full reloads)
           <Route path="/dev" element={<DevLayout />}>

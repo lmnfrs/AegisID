@@ -154,3 +154,9 @@ section > h2 { font-size: 18px; margin-bottom: var(--space-3); padding-bottom: v
 .dev-nav a { color: var(--fg-muted); text-decoration: none; padding: var(--space-1) 0; border-bottom: 2px solid transparent; }
 .dev-nav a:hover { color: var(--fg); }
 .dev-nav a.active { color: var(--fg); font-weight: 700; text-decoration: underline; text-underline-offset: 6px; text-decoration-thickness: 2px; }
+
+/* ===== Home ===== */
+.home { text-align: center; }
+.home__logo { width: 96px; height: auto; margin-bottom: var(--space-4); }
+.home__lead { font-size: 18px; margin: var(--space-3) 0; }
+.home__note { color: var(--fg-muted); }
