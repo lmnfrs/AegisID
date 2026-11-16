@@ -1,8 +1,7 @@
 import { Hono } from "hono";
-import type { Bindings } from "../types";
 
 // Dev-only email send test. Mounted under /t/:slug/api/email by src/worker/index.ts.
-export const devEmail = new Hono<{ Bindings: Bindings }>();
+export const devEmail = new Hono<{ Bindings: Env }>();
 
 devEmail.post("/test", async (c) => {
   const slug = c.req.param("slug") ?? "";

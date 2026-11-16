@@ -1,12 +1,11 @@
 import { Hono } from "hono";
-import type { Bindings } from "./types";
 import { devEmail } from "./dev/email";
 
-const app = new Hono<{ Bindings: Bindings }>();
+const app = new Hono<{ Bindings: Env }>();
 
 app.get("/healthz", (c) => c.text("ok"));
 
-const t = new Hono<{ Bindings: Bindings }>()
+const t = new Hono<{ Bindings: Env }>()
   .basePath("/t/:slug");
 
 t.get("/api/health", (c) =>
