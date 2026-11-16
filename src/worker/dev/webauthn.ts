@@ -55,22 +55,12 @@ function parseTransports(value: string | null): AuthenticatorTransport[] | undef
   return Array.isArray(parsed) ? (parsed as AuthenticatorTransport[]) : undefined;
 }
 
-// Dev-only behaviour: tenants are created on first use from their slug, so the
-// test page works against any slug without an admin step. Not a production model.
-async function getOrCreateTenant(db: D1Database, slug: string): Promise<string> {
-  await db
-    .prepare(
-      "INSERT INTO tenants (id, slug, name, created_at) VALUES (?, ?, ?, ?) " +
-        "ON CONFLICT (slug) DO NOTHING",
-    )
-    .bind(crypto.randomUUID(), slug, slug, Date.now())
-    .run();
+async function findTenantId(db: D1Database, slug: string): Promise<string | null> {
   const row = await db
     .prepare("SELECT id FROM tenants WHERE slug = ?")
     .bind(slug)
     .first<{ id: string }>();
-  if (!row) throw new Error("Tenant row missing after insert");
-  return row.id;
+  return row?.id ?? null;
 }
 
 // Returns the stored user id and handle, creating the user if needed; concurrent callers converge.
@@ -221,7 +211,8 @@ auth.post("/register/options", async (c) => {
   if (!username) return c.json({ ok: false, error: "username must be 1-64 characters" }, 400);
 
   try {
-    const tenantId = await getOrCreateTenant(c.env.DB, slug);
+    const tenantId = await findTenantId(c.env.DB, slug);
+    if (!tenantId) return c.json({ ok: false, error: "Unknown tenant" }, 404);
     const user = await getOrCreateUser(c.env.DB, tenantId, username);
     const existing = await credentialsOf(c.env.DB, tenantId, user.id);
 
@@ -251,7 +242,8 @@ auth.post("/register/verify", async (c) => {
   const response = body.response as unknown as RegistrationResponseJSON;
 
   try {
-    const tenantId = await getOrCreateTenant(c.env.DB, slug);
+    const tenantId = await findTenantId(c.env.DB, slug);
+    if (!tenantId) return c.json({ ok: false, error: "Unknown tenant" }, 404);
     const stored = await takeChallenge(c.env.DB, body.challengeId, tenantId, "register");
     if (!stored || !stored.userId) {
       return c.json({ ok: false, error: "Unknown, expired or already used challenge" }, 400);
@@ -301,7 +293,8 @@ auth.post("/login/options", async (c) => {
   }
 
   try {
-    const tenantId = await getOrCreateTenant(c.env.DB, slug);
+    const tenantId = await findTenantId(c.env.DB, slug);
+    if (!tenantId) return c.json({ ok: false, error: "Unknown tenant" }, 404);
 
     let userId: string | undefined;
     if (username) {
@@ -338,7 +331,8 @@ auth.post("/login/verify", async (c) => {
   const response = body.response as unknown as AuthenticationResponseJSON;
 
   try {
-    const tenantId = await getOrCreateTenant(c.env.DB, slug);
+    const tenantId = await findTenantId(c.env.DB, slug);
+    if (!tenantId) return c.json({ ok: false, error: "Unknown tenant" }, 404);
     const stored = await takeChallenge(c.env.DB, body.challengeId, tenantId, "login");
     if (!stored) {
       return c.json({ ok: false, error: "Unknown, expired or already used challenge" }, 400);
