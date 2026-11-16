@@ -22,7 +22,7 @@ One Cloudflare Worker serves one origin; tenancy is path-based: issuer is `https
 
 - `src/worker/index.ts`: Hono app (Worker entry, set as `main` in `wrangler.jsonc`). Tenant routes hang off `new Hono().basePath("/t/:slug")` and are mounted on the root app.
 - `src/web/`: React SPA built by Vite, served as static assets.
-- Routing split lives in `wrangler.jsonc` `assets`: `run_worker_first` lists the paths the Worker must answer (`/t/*/api/*`, `/t/*/.well-known/*`, `/healthz`); everything else falls to static assets, and `not_found_handling: "single-page-application"` returns the SPA for unknown paths (`/t/{slug}/login`, `/enroll`, `/recover`). A new Worker-handled route must be added to `run_worker_first` or the SPA will swallow it.
+- Routing split lives in `wrangler.jsonc` `assets`: `run_worker_first` lists the paths the Worker must answer (`/t/*/api/*`, `/t/*/.well-known/*`, `/healthz`, `/api/dev/*`); everything else falls to static assets, and `not_found_handling: "single-page-application"` returns the SPA for unknown paths (`/t/{slug}/login`, `/enroll`, `/recover`). A new Worker-handled route must be added to `run_worker_first` or the SPA will swallow it.
 - Database: Cloudflare D1 is bound as `DB`; migrations live in `migrations/`.
 
 ## Gotchas
