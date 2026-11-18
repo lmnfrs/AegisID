@@ -16,6 +16,9 @@ export function Home() {
         Self-hosted, multi-tenant identity provider with passkey-only sign-in.
       </p>
       <p className="home__note">Early development. Nothing here is ready for production use.</p>
+      <p>
+        <Link to="/enroll">Enroll</Link>
+      </p>
       {showDev && (
         <p>
           <Link to="/dev">Dev tools</Link>

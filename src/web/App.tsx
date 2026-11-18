@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { DevLayout } from './pages/DevLayout';
 import { Home } from './pages/Home';
 import './App.css'
+import Enrollment from './pages/Enrollment';
 
 // Dev pages are lazy-loaded so their code (and heavy deps such as DataTables)
 // lives in separate chunks and never ships in the main bundle.
@@ -21,6 +22,8 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Home />} />
+          <Route path="/enroll" element={<Enrollment />} />
+          
         {showDev && (
           // Dev shell: one nav bar, every dev page rendered in its Outlet (no full reloads)
           <Route path="/dev" element={<DevLayout />}>
