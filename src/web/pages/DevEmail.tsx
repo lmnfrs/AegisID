@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Alert, Button, Card, FormField, Input } from '../components/ui';
+import { Turnstile } from '../components/Turnstile';
+import type { TurnstileHandle } from '../components/Turnstile';
 
 type Result =
   | { kind: 'success'; messageId: string }
@@ -11,6 +13,8 @@ export function DevEmail() {
   const [name, setName] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [result, setResult] = useState<Result | null>(null);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const turnstileRef = useRef<TurnstileHandle>(null);
 
   async function sendTest() {
     setIsSending(true);
@@ -19,7 +23,7 @@ export function DevEmail() {
       const res = await fetch(`/t/${encodeURIComponent(slug)}/api/email/test`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ to: to.trim(), name: name.trim() }),
+        body: JSON.stringify({ to: to.trim(), name: name.trim(), turnstileToken }),
       });
       const body = (await res.json()) as { ok: boolean; messageId?: string; error?: string };
       if (res.ok && body.ok && body.messageId) {
@@ -31,6 +35,7 @@ export function DevEmail() {
       setResult({ kind: 'error', message: err instanceof Error ? err.message : 'Request failed' });
     } finally {
       setIsSending(false);
+      turnstileRef.current?.reset();
     }
   }
 
@@ -67,7 +72,13 @@ export function DevEmail() {
             />
           )}
         </FormField>
-        <Button variant="primary" isLoading={isSending} onClick={sendTest}>
+        <Turnstile action="email_test" onToken={setTurnstileToken} ref={turnstileRef} />
+        <Button
+          variant="primary"
+          isLoading={isSending}
+          disabled={!turnstileToken}
+          onClick={sendTest}
+        >
           Send test email
         </Button>
         {result?.kind === 'success' && (

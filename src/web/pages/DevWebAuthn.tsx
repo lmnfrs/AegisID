@@ -8,6 +8,8 @@ import type {
 import { Alert, Button, Card, FormField, Input, Select } from '../components/ui';
 import { loadTenants } from '../lib/tenants';
 import type { Tenant } from '../lib/tenants';
+import { Turnstile } from '../components/Turnstile';
+import type { TurnstileHandle } from '../components/Turnstile';
 
 type Result =
   | { kind: 'success'; title: string; message: string }
@@ -53,6 +55,8 @@ export function DevWebAuthn() {
   const [username, setUsername] = useState('');
   const [busy, setBusy] = useState<'register' | 'login' | null>(null);
   const [result, setResult] = useState<Result | null>(null);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const turnstileRef = useRef<TurnstileHandle>(null);
   const mounted = useRef(false);
 
   useEffect(() => {
@@ -86,7 +90,10 @@ export function DevWebAuthn() {
     setBusy('register');
     setResult(null);
     try {
-      const opts = await post(`${base}/register/options`, { username: username.trim() });
+      const opts = await post(`${base}/register/options`, {
+        username: username.trim(),
+        turnstileToken,
+      });
       const attestation = await startRegistration({
         optionsJSON: opts.options as PublicKeyCredentialCreationOptionsJSON,
       });
@@ -103,6 +110,7 @@ export function DevWebAuthn() {
       setResult({ kind: 'error', message: describeError(err) });
     } finally {
       setBusy(null);
+      turnstileRef.current?.reset();
     }
   }
 
@@ -177,7 +185,13 @@ export function DevWebAuthn() {
             />
           )}
         </FormField>
-        <Button variant="primary" isLoading={busy === 'register'} disabled={!slug} onClick={register}>
+        <Turnstile action="register" onToken={setTurnstileToken} ref={turnstileRef} />
+        <Button
+          variant="primary"
+          isLoading={busy === 'register'}
+          disabled={!slug || !turnstileToken}
+          onClick={register}
+        >
           Register passkey
         </Button>
         <Button variant="primary" isLoading={busy === 'login'} disabled={!slug} onClick={signIn}>
