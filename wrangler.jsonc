@@ -40,9 +40,6 @@
       "RP_ORIGIN": "https://*.aegis.lmnfrs.org",
       "TURNSTILE_HOSTNAMES": "*.aegis.lmnfrs.org"
     },
-    "secrets": {
-      "required": ["TURNSTILE_SECRET"]
-    },
     "d1_databases": [
       {
         "binding": "DB",
