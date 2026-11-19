@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { verifyTurnstile } from "../turnstile";
 
 // Dev-only email send test. Mounted under /t/:slug/api/email by src/worker/index.ts.
 export const devEmail = new Hono<{ Bindings: Env }>();
@@ -15,8 +16,12 @@ devEmail.post("/test", async (c) => {
 
     // Sender address is fixed; recipient and display name come from the request body.
     const body = await c.req
-    .json<{ to?: unknown; name?: unknown }>()
-    .catch(() => ({} as { to?: unknown; name?: unknown }));
+    .json<{ to?: unknown; name?: unknown; turnstileToken?: unknown }>()
+    .catch(() => ({} as { to?: unknown; name?: unknown; turnstileToken?: unknown }));
+
+    if (!(await verifyTurnstile(c.env, body.turnstileToken, "email_test", c.req.header("CF-Connecting-IP")))) {
+    return c.json({ ok: false, error: "Bot check failed. Try again." }, 403);
+    }
 
     // Single plain address only: no display name, lists, quotes or whitespace.
     const to = typeof body.to === "string" ? body.to.trim() : "";

@@ -10,7 +10,11 @@
   "vars": {
     "RP_ID": "aegis.lmnfrs.org",
     "RP_NAME": "AegisID",
-    "RP_ORIGIN": "https://aegis.lmnfrs.org"
+    "RP_ORIGIN": "https://aegis.lmnfrs.org",
+    "TURNSTILE_HOSTNAMES": "aegis.lmnfrs.org"
+  },
+  "secrets": {
+    "required": ["TURNSTILE_SECRET"]
   },
   "assets": {
     "not_found_handling": "single-page-application",
@@ -33,7 +37,11 @@
     "vars": {
       "RP_ID": "aegis.lmnfrs.org",
       "RP_NAME": "AegisID (preview)",
-      "RP_ORIGIN": "https://*.aegis.lmnfrs.org"
+      "RP_ORIGIN": "https://*.aegis.lmnfrs.org",
+      "TURNSTILE_HOSTNAMES": "*.aegis.lmnfrs.org"
+    },
+    "secrets": {
+      "required": ["TURNSTILE_SECRET"]
     },
     "d1_databases": [
       {

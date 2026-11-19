@@ -6,6 +6,7 @@ import {
     verifyAuthenticationResponse,
     verifyRegistrationResponse,
 } from "@simplewebauthn/server";
+import { verifyTurnstile } from "../turnstile";
 import type {
     AuthenticationResponseJSON,
     RegistrationResponseJSON,
@@ -223,6 +224,9 @@ auth.post("/register/options", async (c) => {
   if (!validSlug(slug)) return c.json({ ok: false, error: "Invalid tenant slug" }, 400);
 
   const body = await readBody(c.req.raw);
+  if (!(await verifyTurnstile(c.env, body.turnstileToken, "register", c.req.header("CF-Connecting-IP")))) {
+    return c.json({ ok: false, error: "Bot check failed. Try again." }, 403);
+  }
   const username = parseUsername(body.username);
   if (!username) return c.json({ ok: false, error: "username must be 1-64 characters" }, 400);
 

@@ -2,3 +2,5 @@
 RP_NAME=AegisID
 RP_ID=localhost
 RP_ORIGIN=http://localhost:5173
+TURNSTILE_HOSTNAMES=localhost
+# TURNSTILE_SECRET is a secret: never commit it. Add it to .dev.vars only.
