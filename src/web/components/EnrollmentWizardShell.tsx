@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import LogoLight from '../assets/LogoLight.png';
-import LogoDark from '../assets/LogoDark.png';
+import ThemeToggle from './ThemeToggle';
+import BrandLogo from './BrandLogo';
 
 interface Props {
   currentStep: number;
@@ -10,47 +9,7 @@ interface Props {
   isNextDisabled: boolean;
 }
 
-export default function EnrollmentWizardShell({ currentStep, children, onNext, onBack, isNextDisabled }: Props) {
-    const [theme, setTheme] = useState<'auto' | 'light' | 'dark'>('auto');
-    const [tokens, setTokens] = useState<{name: string, value: string}[]>([]);
-    const [isDark, setIsDark] = useState<boolean>(false);
-    useEffect(() => {
-        const root = document.documentElement;
-        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    
-        const updateTheme = () => {
-          let activeIsDark = false;
-    
-          if (theme === 'dark') {
-            root.setAttribute('data-theme', 'dark');
-            activeIsDark = true;
-          } else if (theme === 'light') {
-            root.setAttribute('data-theme', 'light');
-            activeIsDark = false;
-          } else {
-            root.removeAttribute('data-theme');
-            activeIsDark = mediaQuery.matches;
-          }
-    
-          setIsDark(activeIsDark);
-    
-          const names = ['--bg','--surface','--fg','--fg-muted','--border','--accent','--danger','--success','--info'];
-          const cs = getComputedStyle(root);
-          setTokens(names.map(n => ({ name: n, value: cs.getPropertyValue(n).trim() })));
-        };
-    
-        updateTheme();
-    
-        const handleChange = () => {
-          if (theme === 'auto') {
-            updateTheme();
-          }
-        };
-    
-        mediaQuery.addEventListener('change', handleChange);
-        return () => mediaQuery.removeEventListener('change', handleChange);
-      }, [theme]);
-
+export default function EnrollmentWizardShell({ currentStep, children, onNext, onBack, isNextDisabled }: Props) {    
     const steps = [
         "1. Identity Verification",
         "2. Passkey Registration",
@@ -60,13 +19,7 @@ export default function EnrollmentWizardShell({ currentStep, children, onNext, o
     return (
         <div className="page" style={{ maxWidth: '700px' }}>
             <header className="top" style={{ gap: 'var(--space-4)' }}>
-                <div className="theme" role="group" aria-label="Theme preview">
-                {(['auto', 'light', 'dark'] as const).map(t => (
-                    <button key={t} type="button" onClick={() => setTheme(t)} aria-pressed={theme === t}>
-                    {t.charAt(0).toUpperCase() + t.slice(1)}
-                    </button>
-                ))}
-                </div>
+                <ThemeToggle />
             </header>
             
             <div className="card stack" style={{ minHeight: '500px', display: 'flex', flexDirection: 'column' }}>                
@@ -98,13 +51,7 @@ export default function EnrollmentWizardShell({ currentStep, children, onNext, o
                 })}
                 </div>
 
-                <div style={{ textAlign: 'center', marginBottom: 'var(--space-4)' }}>
-                <img 
-                    src={isDark ? LogoDark : LogoLight} 
-                    alt="AegisID Logo" 
-                    style={{ height: '36px', objectFit: 'contain' }} 
-                    />
-                </div>
+                <BrandLogo/>
 
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                 {children}
@@ -124,7 +71,7 @@ export default function EnrollmentWizardShell({ currentStep, children, onNext, o
                     onClick={onNext} 
                     disabled={isNextDisabled}
                 >
-                    Next &gt;
+                    {currentStep === 3 ? 'Finish' : 'Next >'}
                 </button>
                 </div>
             </div>

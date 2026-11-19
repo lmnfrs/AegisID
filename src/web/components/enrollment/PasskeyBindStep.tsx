@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { usePasskeyAuth } from '../../hooks/usePasskeyAuth';
 
 export default function PasskeyBindStep({ onSuccess }: { onSuccess: () => void }) {
@@ -19,7 +19,7 @@ export default function PasskeyBindStep({ onSuccess }: { onSuccess: () => void }
     if (isSuccess) {
       setTimeout(() => {
         onSuccess(); 
-      }, 1500);
+      }, 500);
     }
   };
 
