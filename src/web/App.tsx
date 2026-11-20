@@ -3,6 +3,9 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { DevLayout } from './pages/DevLayout';
 import { Home } from './pages/Home';
 import './App.css'
+import Enrollment from './pages/Enrollment';
+import Recovery from './pages/Recovery';
+import { ThemeProvider } from './context/ThemeContext';
 
 // Dev pages are lazy-loaded so their code (and heavy deps such as DataTables)
 // lives in separate chunks and never ships in the main bundle.
@@ -18,21 +21,25 @@ const showDev = import.meta.env.DEV || import.meta.env.VITE_SHOW_DEV === 'true';
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        {showDev && (
-          // Dev shell: one nav bar, every dev page rendered in its Outlet (no full reloads)
-          <Route path="/dev" element={<DevLayout />}>
-            <Route index element={<DevIndex />} />
-            <Route path="components" element={<DevShowcase />} />
-            <Route path="email" element={<DevEmail />} />
-            <Route path="webauthn" element={<DevWebAuthn />} />
-            <Route path="tenants" element={<DevTenants />} />
-            <Route path="users" element={<DevUsers />} />
-          </Route>
-        )}
-      </Routes>
-    </BrowserRouter>
+    <ThemeProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Home />} />
+            <Route path="/enroll" element={<Enrollment />} />
+            <Route path="/recovery" element={<Recovery />} />
+          {showDev && (
+            // Dev shell: one nav bar, every dev page rendered in its Outlet (no full reloads)
+            <Route path="/dev" element={<DevLayout />}>
+              <Route index element={<DevIndex />} />
+              <Route path="components" element={<DevShowcase />} />
+              <Route path="email" element={<DevEmail />} />
+              <Route path="webauthn" element={<DevWebAuthn />} />
+              <Route path="tenants" element={<DevTenants />} />
+              <Route path="users" element={<DevUsers />} />
+            </Route>
+          )}
+        </Routes>
+      </BrowserRouter>
+    </ThemeProvider>
   );
 }

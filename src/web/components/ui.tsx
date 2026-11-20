@@ -78,7 +78,7 @@ export function FormField({ label, hint, error, children }: FormFieldProps) {
 
 // ===== Alert =====
 interface AlertProps {
-  variant: 'info' | 'success' | 'error';
+  variant: 'info' | 'success' | 'error' | 'warning';
   title?: string;
   children: ReactNode;
 }

@@ -1,72 +1,39 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Alert, Button, Card, FormField, Input, Spinner } from '../components/ui';
-import LogoLight from '../assets/LogoLight.png';
-import LogoDark from '../assets/LogoDark.png';
+import BrandLogo from '../components/BrandLogo';
+import ThemeToggle from '../components/ThemeToggle';
+import { useTheme } from '../context/ThemeContext';
+
+const COLOR_TOKENS = [
+  '--bg', '--surface', '--fg', '--fg-muted', '--border',
+  '--accent', '--accent-fg', '--accent-hover',
+  '--danger', '--danger-bg', '--success', '--success-bg',
+  '--warning', '--warning-bg', '--info', '--info-bg',
+  '--focus',
+] as const;
 
 export function DevShowcase() {
-  const [theme, setTheme] = useState<'auto' | 'light' | 'dark'>('auto');
+  const { isDark } = useTheme();
   const [tokens, setTokens] = useState<{name: string, value: string}[]>([]);
-  
-  const [isDark, setIsDark] = useState<boolean>(false);
 
   useEffect(() => {
-    const root = document.documentElement;
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-
-    const updateTheme = () => {
-      let activeIsDark = false;
-
-      if (theme === 'dark') {
-        root.setAttribute('data-theme', 'dark');
-        activeIsDark = true;
-      } else if (theme === 'light') {
-        root.setAttribute('data-theme', 'light');
-        activeIsDark = false;
-      } else {
-        root.removeAttribute('data-theme');
-        activeIsDark = mediaQuery.matches;
-      }
-
-      setIsDark(activeIsDark);
-
-      const names = ['--bg','--surface','--fg','--fg-muted','--border','--accent','--danger','--success','--info'];
-      const cs = getComputedStyle(root);
-      setTokens(names.map(n => ({ name: n, value: cs.getPropertyValue(n).trim() })));
-    };
-
-    updateTheme();
-
-    const handleChange = () => {
-      if (theme === 'auto') {
-        updateTheme();
-      }
-    };
-
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
-  }, [theme]);
+    // Re-read computed values after the DOM has applied the theme change
+    requestAnimationFrame(() => {
+      const styles = getComputedStyle(document.documentElement);
+      setTokens(
+        COLOR_TOKENS.map(name => ({
+          name,
+          value: styles.getPropertyValue(name).trim(),
+        })),
+      );
+    });
+  }, [isDark]);  
 
   return (
     <div className="page">
       <header className="top" style={{ gap: 'var(--space-4)' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>    
-          <div className="logo-container" style={{ display: 'flex', alignItems: 'center' }}>
-            <img 
-              src={isDark ? LogoDark : LogoLight} 
-              alt="AegisID Logo" 
-              style={{ height: '36px', objectFit: 'contain' }} 
-            />
-          </div>
-        
-        </div>
-        
-        <div className="theme" role="group" aria-label="Theme preview">
-          {(['auto', 'light', 'dark'] as const).map(t => (
-            <button key={t} type="button" onClick={() => setTheme(t)} aria-pressed={theme === t}>
-              {t.charAt(0).toUpperCase() + t.slice(1)}
-            </button>
-          ))}
-        </div>
+        <BrandLogo />        
+        <ThemeToggle />
       </header>
 
       <section>
