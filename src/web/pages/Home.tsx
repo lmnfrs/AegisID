@@ -12,6 +12,12 @@ export function Home() {
       </p>
       <p className="home__note">Early development. Nothing here is ready for production use.</p>
       <p>
+        <Link to="/login">Login</Link>
+      </p>
+      <p>
+        <Link to="/authorize">Authorize</Link>
+      </p>
+      <p>
         <Link to="/enroll">Enroll</Link>
       </p>
       <p>

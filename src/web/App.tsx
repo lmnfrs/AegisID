@@ -2,9 +2,11 @@ import { lazy } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { DevLayout } from './pages/DevLayout';
 import { Home } from './pages/Home';
-import './App.css'
+import './App.css';
 import Enrollment from './pages/Enrollment';
 import Recovery from './pages/Recovery';
+import Login from './pages/Login';
+import Authorize from './pages/Authorize';
 import { ThemeProvider } from './context/ThemeContext';
 
 // Dev pages are lazy-loaded so their code (and heavy deps such as DataTables)
@@ -25,8 +27,12 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Home />} />
-            <Route path="/enroll" element={<Enrollment />} />
-            <Route path="/recovery" element={<Recovery />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/authorize" element={<Authorize />} />
+          <Route path="/t/:slug/login" element={<Login />} />
+          <Route path="/t/:slug/authorize" element={<Authorize />} />
+          <Route path="/enroll" element={<Enrollment />} />
+          <Route path="/recovery" element={<Recovery />} />
           {showDev && (
             // Dev shell: one nav bar, every dev page rendered in its Outlet (no full reloads)
             <Route path="/dev" element={<DevLayout />}>
