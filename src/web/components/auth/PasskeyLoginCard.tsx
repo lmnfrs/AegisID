@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
-import type { FormEvent } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Alert, Button, FormField, Input } from '../ui';
+import { Alert, Button } from '../ui';
 import { usePasskeyAuth } from '../../hooks/usePasskeyAuth';
 import type { AuthErrorKind } from '../../hooks/usePasskeyAuth';
 import BiometricWaitingBox from './BiometricWaitingBox';
@@ -10,6 +9,7 @@ const showDev = import.meta.env.DEV || import.meta.env.VITE_SHOW_DEV === 'true';
 
 const SSO_SESSION_KEY = 'aegis_demo_sso_user';
 const PENDING_AUTHORIZE_KEY = 'aegis_pending_authorize_query';
+const DEFAULT_POST_LOGIN_ROUTE = '/account/profile';
 
 interface LoginLocationState {
   enrollmentSuccess?: boolean;
@@ -28,10 +28,8 @@ export default function PasskeyLoginCard() {
     errorKind,
     retryAfterSeconds,
     loginWithPasskey,
-    resetStatus,
   } = usePasskeyAuth();
 
-  const [username, setUsername] = useState('');
   const [devErrorOverride, setDevErrorOverride] = useState<{
     kind: AuthErrorKind;
     message: string;
@@ -61,14 +59,14 @@ export default function PasskeyLoginCard() {
       return;
     }
 
-    navigate('/authorize', { replace: true });
+    navigate(DEFAULT_POST_LOGIN_ROUTE, { replace: true });
   };
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handlePasskeyLogin = async () => {
+    if (activeCooldown > 0) return;
     setDevErrorOverride(null);
 
-    const result = await loginWithPasskey(username);
+    const result = await loginWithPasskey();
     if (result?.ok) {
       completeLoginRedirect(result.username);
     }
@@ -132,47 +130,23 @@ export default function PasskeyLoginCard() {
           </Alert>
         )}
 
-      <form onSubmit={handleSubmit} className="stack">
-        <FormField
-          label="Username or Email"
-          hint="Optional if your browser suggests a saved Passkey."
+      {isWaiting ? (
+        <BiometricWaitingBox phase={status} />
+      ) : (
+        <Button
+          type="button"
+          variant="primary"
+          isBlock
+          disabled={!isWebAuthnSupported || activeCooldown > 0}
+          onClick={handlePasskeyLogin}
         >
-          {(fieldProps) => (
-            <Input
-              {...fieldProps}
-              type="text"
-              placeholder="you@organization.com"
-              autoComplete="username webauthn"
-              value={username}
-              disabled={isWaiting || !isWebAuthnSupported}
-              onChange={(e) => {
-                setUsername(e.target.value);
-                if (status === 'error' || devErrorOverride) {
-                  resetStatus();
-                  setDevErrorOverride(null);
-                }
-              }}
-            />
-          )}
-        </FormField>
-
-        {isWaiting ? (
-          <BiometricWaitingBox phase={status} />
-        ) : (
-          <Button
-            type="submit"
-            variant="primary"
-            isBlock
-            disabled={!isWebAuthnSupported || activeCooldown > 0}
-          >
-            {activeCooldown > 0
-              ? `Please try again in ${activeCooldown}s`
-              : activeErrorKind === 'cancelled'
-                ? 'Retry with Passkey'
-                : 'Continue with Passkey'}
-          </Button>
-        )}
-      </form>
+          {activeCooldown > 0
+            ? `Please try again in ${activeCooldown}s`
+            : activeErrorKind === 'cancelled'
+              ? 'Retry with Passkey'
+              : 'Continue with Passkey'}
+        </Button>
+      )}
 
       {/* RecoveryLinkFooter */}
       <div
@@ -190,7 +164,7 @@ export default function PasskeyLoginCard() {
         </Link>
       </div>
 
-      {/* Dev-only state tester (matches teammate's pattern in RecoveryEmailForm) */}
+      {/* Dev-only state tester */}
       {showDev && (
         <div
           style={{
@@ -209,7 +183,7 @@ export default function PasskeyLoginCard() {
               type="button"
               className="btn"
               style={{ minHeight: '28px', padding: '0 8px', fontSize: '12px' }}
-              onClick={() => completeLoginRedirect(username.trim() || 'Silverhand1234@gmail.com')}
+              onClick={() => completeLoginRedirect('Silverhand1234@gmail.com')}
             >
               Simulate SSO Login
             </button>
