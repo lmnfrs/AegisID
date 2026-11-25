@@ -1,10 +1,10 @@
 import { Link } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
-import { Alert, Button, Card, FormField, Select } from '../components/ui';
-import { DataTable } from '../components/DataTable';
-import type { DataTableColumns, DataTableOptions } from '../components/DataTable';
-import { loadTenants } from '../lib/tenants';
-import type { Tenant } from '../lib/tenants';
+import { Alert, Button, Card, FormField, Select } from '../../components/ui';
+import { DataTable } from '../../components/DataTable';
+import type { DataTableColumns, DataTableOptions } from '../../components/DataTable';
+import { loadTenants } from '../../lib/tenants';
+import type { Tenant } from '../../lib/tenants';
 
 type UserRow = {
   id: string;
