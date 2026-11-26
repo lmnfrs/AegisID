@@ -90,7 +90,7 @@ No test runner is configured yet.
 
 ## Dev routes
 
-> **Dev routes have no authentication.** They can create tenants, list users, run a passkey test and send email. They must never be enabled in production.
+> **Dev routes have no authentication.** They can create tenants, list users, run a passkey test, issue access tokens and send email. They must never be enabled in production.
 
 The routes are mounted only when `import.meta.env.DEV` is true (the dev server) or when the build sets `VITE_SHOW_DEV=true`. A build with `VITE_SHOW_DEV=true` exposes them. Do not set it for a production build.
 
@@ -102,14 +102,16 @@ The dev pages are at `/dev/*`. The Worker routes are in `src/worker/dev/`.
 src/
   worker/
     index.ts      Hono app and route mounting
-    dev/          Dev-only routes: tenants.ts, webauthn.ts, email.ts
+    jwt.ts        ES256 access token sign and verify
+    dev/          Dev-only routes: tenants.ts, webauthn.ts, email.ts, token.ts
   web/
     App.tsx       Routes: home page and the /dev shell
     main.tsx      React entry point
     pages/        Home.tsx and the dev pages (lazy-loaded), devPages.ts
     components/   ui.tsx (shared UI), DataTable.tsx
-    lib/          Client helpers (tenants.ts)
+    lib/          Client helpers (tenants.ts, jwt.ts)
 migrations/       D1 SQL migrations (0001_init.sql)
+scripts/          gen-jwt-key.mjs (generates the JWT signing key)
 docs/             Design decisions. See docs/README.md
 public/           Static files
 wrangler.jsonc    Worker, assets, D1, email and vars config

@@ -43,6 +43,7 @@ React 19 single-page app, built by Vite and served as Cloudflare Workers static 
 - Pages call same-origin JSON endpoints with `fetch`. Parse with `res.json().catch(() => ({}))`, then check `res.ok` and the body's `error` field.
 - Do not fetch D1-backed endpoints on mount. StrictMode runs effects twice in dev, so a mount fetch runs twice. Load on a user action instead. `DevTenants` shows its list after a button click. `DevUsers` loads tenants on the first focus of its Select.
 - Show a list only after its data exists, or keep a `null` state that means "not loaded yet". The DataTable mounts once and initializes with its rows.
+- `lib/jwt.ts` decodes a token for display on the dev pages (`DevToken`, `DevWebAuthn`). It does not verify the signature.
 - `lib/tenants.ts` is the pattern for a shared load:
   - `loadTenants()` caches its promise, so pages share one request.
   - A failed request clears the cache, so the next call retries.

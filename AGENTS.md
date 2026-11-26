@@ -5,7 +5,7 @@
 AegisID: self-hosted, multi-tenant OIDC identity provider with passkey-only login (WebAuthn/FIDO2). Early development.
 
 - Implemented: Worker `/healthz` and `/t/:slug/api/v1/health`; public home page at `/`.
-- Dev-only tooling under `/dev`: tenants and users lists, passkey test on D1, email test. Not for production.
+- Dev-only tooling under `/dev`: tenants and users lists, passkey test on D1, token issue and verify, email test. Not for production.
 - `docs/adr/` holds architecture decision records; index in `docs/README.md`.
 - The scope spec is `information_en.md`, which is NOT in the repo (a copy lives outside it). The design targets NIST SP 800-63B-4 AAL2. Never write code, docs or comments that claim AAL2 compliance or OIDC conformance. License is AGPL-3.0.
 
