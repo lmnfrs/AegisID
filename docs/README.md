@@ -7,6 +7,7 @@ This directory holds the project's design records: Architecture Decision Records
 | 0001 | WebAuthn RP ID and origins | Accepted | [adr/0001-rp-id.md](adr/0001-rp-id.md) |
 | 0002 | Path-based tenancy and UUID keys | Accepted | [adr/0002-tenancy-and-keys.md](adr/0002-tenancy-and-keys.md) |
 | 0003 | Where OIDC endpoints live | Proposed | [adr/0003-oidc-endpoint-paths.md](adr/0003-oidc-endpoint-paths.md) |
+| 0004 | Access token format and signing | Accepted | [adr/0004-access-token-signing.md](adr/0004-access-token-signing.md) |
 
 ## Adding an ADR
 

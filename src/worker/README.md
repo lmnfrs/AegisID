@@ -2,7 +2,7 @@
 
 One Hono app is the Worker entry (`main` in `wrangler.jsonc` points at `src/worker/index.ts`). It shares one origin with the SPA. Tenancy is by path: tenant routes hang off `new Hono().basePath("/t/:slug")`.
 
-Scope today: the OIDC endpoints are not implemented. There is no authorize, token, userinfo, JWKS or end-session handler, and the discovery path has no handler. The passkey routes are dev-only tests and issue no session.
+Scope today: the OIDC endpoints are not implemented. There is no authorize, token, userinfo, JWKS or end-session handler, and the discovery path has no handler. The passkey routes are dev-only tests. Dev `login/verify` returns an access token (see [Access tokens](#access-tokens)), but no route checks one yet and there is no session or cookie.
 
 ## Which requests reach the Worker
 
@@ -70,6 +70,17 @@ Failures use `{ ok: false, error: "..." }`:
 Success bodies differ by route (`{ ok: true, ... }`, `{ tenants: [...] }`, `{ challengeId, options }`).
 
 Dev routes put the exception message in 500 bodies so the dev pages can show it. Production routes should not do that.
+
+## Access tokens
+
+`jwt.ts` signs and verifies ES256 JWTs with Web Crypto. Design and trade-offs: [ADR 0004](../../docs/adr/0004-access-token-signing.md).
+
+- Needs secret `JWT_PRIVATE_JWK` (generate with `node scripts/gen-jwt-key.mjs`). A missing or bad key makes sign and verify throw, so routes return 500.
+- `signAccessToken(env, { issuer, audience, userId, username })` returns `{ token, expiresAt }`. TTL is 60 minutes. Claims: `iss`, `aud`, `sub` (user UUID), `preferred_username`, `iat`, `exp`, `jti`.
+- `verifyAccessToken(env, token, { issuer, audience })` returns `{ ok: true, claims }` or `{ ok: false, error }`. It does not throw on a bad token.
+- `iss` is `<request origin>/t/{slug}`. `aud` is `DASHBOARD_AUDIENCE` (`aegisid-dashboard`).
+- Dev callers: `POST /t/:slug/api/v1/auth/login/verify` (returns `token` and `expiresAt` after a passkey check), `POST /api/v1/dev/token` (`{ slug, userId }`, no passkey check) and `POST /api/v1/dev/token/verify` (`{ slug, token }`). Dev page: `/dev/token`.
+- Tokens cannot be revoked before `exp`.
 
 ## WebAuthn
 
