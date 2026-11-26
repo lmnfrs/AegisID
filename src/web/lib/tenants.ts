@@ -7,7 +7,7 @@ let cached: Promise<Tenant[]> | null = null;
 
 export function loadTenants(): Promise<Tenant[]> {
   if (cached) return cached;
-  const request = fetch('/api/dev/tenants').then(async (res) => {
+  const request = fetch('/api/v1/dev/tenants').then(async (res) => {
     const body = (await res.json().catch(() => ({}))) as ListBody;
     if (!res.ok || !body.tenants) throw new Error(body.error ?? `HTTP ${res.status}`);
     return body.tenants;

@@ -14,7 +14,7 @@
   },
   "assets": {
     "not_found_handling": "single-page-application",
-    "run_worker_first": ["/t/*/api/*", "/t/*/.well-known/*", "/healthz", "/api/dev/*"]
+    "run_worker_first": ["/t/*/api/*", "/t/*/.well-known/*", "/healthz", "/api/v1/dev/*"]
   },
   "d1_databases": [
     {

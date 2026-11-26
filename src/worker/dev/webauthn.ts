@@ -14,7 +14,7 @@ import type {
     AuthenticatorTransport,
 } from "@simplewebauthn/server";
 
-// DEV-ONLY passkey register / sign-in test. Mounted under /t/:slug/api/auth
+// DEV-ONLY passkey register / sign-in test. Mounted under /t/:slug/api/v1/auth
 // by src/worker/index.ts.
 //
 // - State lives in D1 (tables from migrations/0001_init.sql): tenants, users,

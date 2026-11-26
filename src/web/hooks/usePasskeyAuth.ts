@@ -103,7 +103,7 @@ export function usePasskeyAuth() {
         await new Promise((resolve) => setTimeout(resolve, 300));
         optionsJSON = createMockRegistrationOptions();
       } else {
-        const optionsRes = await fetch('/t/demo/api/auth/register/options', {
+        const optionsRes = await fetch('/t/demo/api/v1/auth/register/options', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'same-origin',
@@ -128,7 +128,7 @@ export function usePasskeyAuth() {
       if (USE_MOCK_WEBAUTHN) {
         await new Promise((resolve) => setTimeout(resolve, 500));
       } else {
-        const verifyRes = await fetch('/t/demo/api/auth/register/verify', {
+        const verifyRes = await fetch('/t/demo/api/v1/auth/register/verify', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'same-origin',
@@ -188,7 +188,7 @@ export function usePasskeyAuth() {
         await new Promise((resolve) => setTimeout(resolve, 300));
         optionsJSON = createMockAuthenticationOptions();
       } else {
-        const optionsRes = await fetch('/t/demo/api/auth/login/options', {
+        const optionsRes = await fetch('/t/demo/api/v1/auth/login/options', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'same-origin',
@@ -244,7 +244,7 @@ export function usePasskeyAuth() {
         };
       }
 
-      const verifyRes = await fetch('/t/demo/api/auth/login/verify', {
+      const verifyRes = await fetch('/t/demo/api/v1/auth/login/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'same-origin',

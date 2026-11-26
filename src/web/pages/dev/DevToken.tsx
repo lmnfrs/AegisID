@@ -111,7 +111,7 @@ export function DevToken() {
     setUsers(null);
     setUserId('');
     try {
-      const res = await fetch(`/api/dev/tenants/${encodeURIComponent(slug)}/users`);
+      const res = await fetch(`/api/v1/dev/tenants/${encodeURIComponent(slug)}/users`);
       const body = (await res.json().catch(() => ({}))) as UsersBody;
       if (!res.ok || !Array.isArray(body.users)) {
         throw new Error(body.error ?? `HTTP ${res.status}`);
@@ -132,7 +132,7 @@ export function DevToken() {
     setIssueError(null);
     clearIssued();
     try {
-      const res = await fetch('/api/dev/token', {
+      const res = await fetch('/api/v1/dev/token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ slug, userId }),
@@ -182,7 +182,7 @@ export function DevToken() {
     setVerifying(true);
     setVerifyResult(null);
     try {
-      const res = await fetch('/api/dev/token/verify', {
+      const res = await fetch('/api/v1/dev/token/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ slug, token: issued.token }),
@@ -207,7 +207,7 @@ export function DevToken() {
     <div>
       <Card
         title="Access token"
-        desc="Issues an ES256 JWT access token (60 minutes) for a user via /api/dev/token. Dev only."
+        desc="Issues an ES256 JWT access token (60 minutes) for a user via /api/v1/dev/token. Dev only."
       >
         <FormField label="Tenant slug">
           {(fieldProps) => (

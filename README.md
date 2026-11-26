@@ -43,8 +43,8 @@ One Worker serves one origin. Tenants are separated by path: `/t/{slug}/...`. Th
 | Route | Handled by | Status |
 | --- | --- | --- |
 | `/healthz` | Worker | Returns `ok` |
-| `/t/{slug}/api/health` | Worker | Returns `{ "ok": true, "tenant": "<slug>" }` |
-| `/t/{slug}/api/email/*`, `/t/{slug}/api/auth/*`, `/api/dev/tenants*` | Worker | Dev-only. See [Dev routes](#dev-routes) |
+| `/t/{slug}/api/v1/health` | Worker | Returns `{ "ok": true, "tenant": "<slug>" }` |
+| `/t/{slug}/api/v1/email/*`, `/t/{slug}/api/v1/auth/*`, `/api/v1/dev/tenants*` | Worker | Dev-only. See [Dev routes](#dev-routes) |
 | `/t/{slug}/.well-known/*` | Worker | Planned. Returns 404 today |
 | `/`, `/dev/*` | SPA (static assets) | Home page and dev pages |
 | Any other path | SPA (static assets) | Falls back to the SPA page |

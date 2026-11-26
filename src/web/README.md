@@ -1,13 +1,13 @@
 # Web app (src/web)
 
-React 19 single-page app, built by Vite and served as Cloudflare Workers static assets. It runs on the same origin as the Worker API, so pages call relative URLs like `/api/dev/tenants`. Setup steps are in [../../README.md](../../README.md).
+React 19 single-page app, built by Vite and served as Cloudflare Workers static assets. It runs on the same origin as the Worker API, so pages call relative URLs like `/api/v1/dev/tenants`. Setup steps are in [../../README.md](../../README.md).
 
 ## How a page loads
 
 - `index.html` (repo root) loads `/src/web/main.tsx`. `main.tsx` renders `<App />` inside `StrictMode`.
 - `App.tsx` wraps the routes in `BrowserRouter`. Move between pages with `<Link>` or `<NavLink>`. Never use `<a href>` for an internal link.
 - A refresh or a direct visit to an SPA path gets `index.html` back. `not_found_handling: "single-page-application"` in `wrangler.jsonc` does this.
-- Paths listed in `assets.run_worker_first` go to the Worker instead: `/t/*/api/*`, `/t/*/.well-known/*`, `/healthz`, `/api/dev/*`. A new Worker route must be added there, or the SPA answers it. See [../worker/README.md](../worker/README.md).
+- Paths listed in `assets.run_worker_first` go to the Worker instead: `/t/*/api/*`, `/t/*/.well-known/*`, `/healthz`, `/api/v1/dev/*`. A new Worker route must be added there, or the SPA answers it. See [../worker/README.md](../worker/README.md).
 
 ## Routing
 

@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { DASHBOARD_AUDIENCE, signAccessToken, verifyAccessToken } from "../jwt";
 
-// DEV-ONLY access token issue and verify. No authentication. Mounted under /api/dev/token by src/worker/index.ts.
+// DEV-ONLY access token issue and verify. No authentication. Mounted under /api/v1/dev/token by src/worker/index.ts.
 export const devToken = new Hono<{ Bindings: Env }>();
 
 const SLUG_PATTERN = /^[a-z0-9-]{1,63}$/;

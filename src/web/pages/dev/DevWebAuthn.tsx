@@ -82,7 +82,7 @@ export function DevWebAuthn() {
       });
   }
 
-  const base = `/t/${encodeURIComponent(slug)}/api/auth`;
+  const base = `/t/${encodeURIComponent(slug)}/api/v1/auth`;
 
   async function register() {
     setBusy('register');
@@ -139,7 +139,7 @@ export function DevWebAuthn() {
     <div>
       <Card
         title="Passkey test"
-        desc="Registers and uses a passkey via /t/:slug/api/auth. Credentials are stored in the local D1 database."
+        desc="Registers and uses a passkey via /t/:slug/api/v1/auth. Credentials are stored in the local D1 database."
       >
         <FormField label="Tenant slug">
           {(fieldProps) => (

@@ -11,7 +11,7 @@ Only paths in `assets.run_worker_first` (`wrangler.jsonc`) reach the Worker:
 - `/t/*/api/*`
 - `/t/*/.well-known/*`
 - `/healthz`
-- `/api/dev/*`
+- `/api/v1/dev/*`
 
 Everything else goes to static assets. Because `not_found_handling` is `"single-page-application"`, an unknown path returns `index.html` with status 200.
 
@@ -19,8 +19,8 @@ A new route outside these prefixes fails quietly: clients get HTML. Add its pref
 
 ## Route layout
 
-- Root app (`index.ts`): `/healthz` and, in dev builds only, `/api/dev/tenants` and `/api/dev/token` (issue and verify an access token, `src/worker/dev/token.ts`).
-- Tenant sub-app (`t`): `/t/:slug/api/health` is always on. `/t/:slug/api/email` and `/t/:slug/api/auth` are dev only.
+- Root app (`index.ts`): `/healthz` and, in dev builds only, `/api/v1/dev/tenants` and `/api/v1/dev/token` (issue and verify an access token, `src/worker/dev/token.ts`).
+- Tenant sub-app (`t`): `/t/:slug/api/v1/health` is always on. `/t/:slug/api/v1/email` and `/t/:slug/api/v1/auth` are dev only.
 - Dev routes mount only when `showDev` is true: `import.meta.env.DEV`, or `VITE_SHOW_DEV=true` at build time. Dev routes have no authentication. Never set `VITE_SHOW_DEV=true` for a production build.
 
 To add a tenant route, export a Hono instance from a module and mount it:
@@ -33,7 +33,7 @@ thing.get("/", (c) => c.json({ tenant: c.req.param("slug") }));
 
 // src/worker/index.ts
 import { thing } from "./tenant-thing";
-t.route("/api/thing", thing);
+t.route("/api/v1/thing", thing);
 ```
 
 `c.req.param("slug")` works inside mounted sub-apps, and the dev modules already rely on it. The router does not check the slug or that the tenant exists. Do that yourself (see Database).
@@ -92,8 +92,8 @@ Library: `@simplewebauthn/server` v14, used in `dev/webauthn.ts`.
 ## Gotchas
 
 - A route missing from `run_worker_first` returns the SPA's HTML with status 200.
-- `/api/dev/*` always reaches the Worker. In production its routes are not mounted, so requests get a 404.
-- `/t/:slug/api/health` does not check that the tenant exists. Do not copy it.
+- `/api/v1/dev/*` always reaches the Worker. In production its routes are not mounted, so requests get a 404.
+- `/t/:slug/api/v1/health` does not check that the tenant exists. Do not copy it.
 - Previews need every var and binding repeated under `previews`.
 - Changing `RP_ID` after users register passkeys makes those passkeys unusable.
 - Auth, OIDC, crypto, database access and migrations need maintainer review ([AGENTS.md](../../AGENTS.md)).

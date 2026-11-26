@@ -16,7 +16,7 @@ export function DevEmail() {
     setIsSending(true);
     setResult(null);
     try {
-      const res = await fetch(`/t/${encodeURIComponent(slug)}/api/email/test`, {
+      const res = await fetch(`/t/${encodeURIComponent(slug)}/api/v1/email/test`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ to: to.trim(), name: name.trim() }),
@@ -36,7 +36,7 @@ export function DevEmail() {
 
   return (
     <div>
-      <Card title="Email test" desc="Sends the test message via POST /t/:slug/api/email/test.">
+      <Card title="Email test" desc="Sends the test message via POST /t/:slug/api/v1/email/test.">
         <FormField label="Tenant slug">
           {(fieldProps) => (
             <Input
