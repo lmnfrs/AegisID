@@ -6,6 +6,7 @@ import {
     verifyAuthenticationResponse,
     verifyRegistrationResponse,
 } from "@simplewebauthn/server";
+import { DASHBOARD_AUDIENCE, signAccessToken } from "../jwt";
 import type {
     AuthenticationResponseJSON,
     RegistrationResponseJSON,
@@ -384,7 +385,14 @@ auth.post("/login/verify", async (c) => {
       )
       .bind(result.authenticationInfo.newCounter, Date.now(), tenantId, known.credential.id)
       .run();
-    return c.json({ ok: true, username: known.username });
+    // Dev-only: this route is mounted only when showDev, so the token is never issued in production.
+    const { token, expiresAt } = await signAccessToken(c.env, {
+      issuer: `${new URL(c.req.url).origin}/t/${slug}`,
+      audience: DASHBOARD_AUDIENCE,
+      userId: known.userId,
+      username: known.username,
+    });
+    return c.json({ ok: true, username: known.username, token, expiresAt });
   } catch (error) {
     return c.json({ ok: false, error: errorMessage(error) }, 500);
   }

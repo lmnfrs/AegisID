@@ -1,11 +1,10 @@
 import { Hono } from "hono";
-import { signAccessToken, verifyAccessToken } from "../jwt";
+import { DASHBOARD_AUDIENCE, signAccessToken, verifyAccessToken } from "../jwt";
 
 // DEV-ONLY access token issue and verify. No authentication. Mounted under /api/dev/token by src/worker/index.ts.
 export const devToken = new Hono<{ Bindings: Env }>();
 
 const SLUG_PATTERN = /^[a-z0-9-]{1,63}$/;
-const AUDIENCE = "aegisid-dashboard";
 
 function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
@@ -36,7 +35,7 @@ devToken.post("/", async (c) => {
     const issuer = `${new URL(c.req.url).origin}/t/${slug}`;
     const { token, expiresAt } = await signAccessToken(c.env, {
       issuer,
-      audience: AUDIENCE,
+      audience: DASHBOARD_AUDIENCE,
       userId: user.id,
       username: user.username,
     });
@@ -58,7 +57,7 @@ devToken.post("/verify", async (c) => {
 
   try {
     const issuer = `${new URL(c.req.url).origin}/t/${slug}`;
-    const result = await verifyAccessToken(c.env, token, { issuer, audience: AUDIENCE });
+    const result = await verifyAccessToken(c.env, token, { issuer, audience: DASHBOARD_AUDIENCE });
     if (!result.ok) return c.json({ ok: false, error: result.error }, 400);
     return c.json({ ok: true, claims: result.claims });
   } catch (error) {

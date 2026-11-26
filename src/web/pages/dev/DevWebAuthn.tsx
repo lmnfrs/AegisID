@@ -10,7 +10,7 @@ import { loadTenants } from '../../lib/tenants';
 import type { Tenant } from '../../lib/tenants';
 
 type Result =
-  | { kind: 'success'; title: string; message: string }
+  | { kind: 'success'; title: string; message: string; token?: string; expiresAt?: number }
   | { kind: 'error'; message: string };
 
 type ApiBody = {
@@ -20,6 +20,8 @@ type ApiBody = {
   options?: unknown;
   credentialId?: string;
   username?: string;
+  token?: string;
+  expiresAt?: number;
 };
 
 async function post(path: string, payload: unknown): Promise<ApiBody> {
@@ -123,6 +125,8 @@ export function DevWebAuthn() {
         kind: 'success',
         title: 'Signed in',
         message: `Username: ${done.username ?? ''}`,
+        token: done.token,
+        expiresAt: done.expiresAt,
       });
     } catch (err) {
       setResult({ kind: 'error', message: describeError(err) });
@@ -186,6 +190,13 @@ export function DevWebAuthn() {
         {result?.kind === 'success' && (
           <Alert variant="success" title={result.title}>
             {result.message}
+            {result.token && (
+              <>
+                <br />
+                Expires: {result.expiresAt ? new Date(result.expiresAt).toLocaleString() : ''}
+                <textarea className="input" readOnly rows={5} value={result.token} style={{ fontFamily: 'var(--mono)' }} />
+              </>
+            )}
           </Alert>
         )}
         {result?.kind === 'error' && (
