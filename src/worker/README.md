@@ -19,7 +19,7 @@ A new route outside these prefixes fails quietly: clients get HTML. Add its pref
 
 ## Route layout
 
-- Root app (`index.ts`): `/healthz` and, in dev builds only, `/api/dev/tenants`.
+- Root app (`index.ts`): `/healthz` and, in dev builds only, `/api/dev/tenants` and `/api/dev/token` (issue and verify an access token, `src/worker/dev/token.ts`).
 - Tenant sub-app (`t`): `/t/:slug/api/health` is always on. `/t/:slug/api/email` and `/t/:slug/api/auth` are dev only.
 - Dev routes mount only when `showDev` is true: `import.meta.env.DEV`, or `VITE_SHOW_DEV=true` at build time. Dev routes have no authentication. Never set `VITE_SHOW_DEV=true` for a production build.
 
