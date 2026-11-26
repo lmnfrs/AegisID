@@ -20,20 +20,16 @@ React 19 single-page app, built by Vite and served as Cloudflare Workers static 
   ```
 
   Dev routes have no auth. Do not build for a public origin with `VITE_SHOW_DEV=true`.
-- To add a dev page, make three changes:
+- To add a dev page, place its component in `pages/dev/` and add an entry to `pages/dev/devPages.ts`. The router, nav, and index use that entry.
 
   ```ts
-  // App.tsx: lazy import, with the others
-  const DevFoo = lazy(() => import('./pages/DevFoo').then((m) => ({ default: m.DevFoo })));
-
-  // App.tsx: child of the /dev route
-  <Route path="foo" element={<DevFoo />} />
-
-  // pages/devPages.ts: nav entry
-  { path: '/dev/foo', title: 'Foo', desc: 'What it checks.' },
+  {
+    path: 'foo',
+    title: 'Foo',
+    desc: 'What it checks.',
+    Component: lazy(() => import('./DevFoo').then((m) => ({ default: m.DevFoo }))),
+  },
   ```
-
-  Without the `devPages.ts` entry, the page still works by URL, but the nav does not list it.
 
 ## Bundles
 

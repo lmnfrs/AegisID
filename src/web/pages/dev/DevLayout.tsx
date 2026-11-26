@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
-import { Spinner } from '../components/ui';
+import { Spinner } from '../../components/ui';
 import { devPages } from './devPages';
 
 // Shared shell for every dev page: one persistent nav bar, pages render in <Outlet />.

@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Alert, Button, Card, FormField, Input, Spinner } from '../components/ui';
-import BrandLogo from '../components/BrandLogo';
-import ThemeToggle from '../components/ThemeToggle';
-import { useTheme } from '../context/ThemeContext';
+import { Alert, Button, Card, FormField, Input, Spinner } from '../../components/ui';
+import BrandLogo from '../../components/BrandLogo';
+import ThemeToggle from '../../components/ThemeToggle';
+import { useTheme } from '../../context/ThemeContext';
 
 const COLOR_TOKENS = [
   '--bg', '--surface', '--fg', '--fg-muted', '--border',

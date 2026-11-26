@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { Alert, Button, Card, FormField, Input } from '../components/ui';
-import { DataTable } from '../components/DataTable';
-import type { DataTableColumns, DataTableOptions } from '../components/DataTable';
-import { invalidateTenants, loadTenants } from '../lib/tenants';
-import type { Tenant } from '../lib/tenants';
+import { Alert, Button, Card, FormField, Input } from '../../components/ui';
+import { DataTable } from '../../components/DataTable';
+import type { DataTableColumns, DataTableOptions } from '../../components/DataTable';
+import { invalidateTenants, loadTenants } from '../../lib/tenants';
+import type { Tenant } from '../../lib/tenants';
 
 type Result =
   | { kind: 'success'; slug: string }

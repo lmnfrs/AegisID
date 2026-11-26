@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Card } from '../components/ui';
+import { Card } from '../../components/ui';
 import { devPages } from './devPages';
 
 export function DevIndex() {

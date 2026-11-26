@@ -5,9 +5,9 @@ import type {
   PublicKeyCredentialCreationOptionsJSON,
   PublicKeyCredentialRequestOptionsJSON,
 } from '@simplewebauthn/browser';
-import { Alert, Button, Card, FormField, Input, Select } from '../components/ui';
-import { loadTenants } from '../lib/tenants';
-import type { Tenant } from '../lib/tenants';
+import { Alert, Button, Card, FormField, Input, Select } from '../../components/ui';
+import { loadTenants } from '../../lib/tenants';
+import type { Tenant } from '../../lib/tenants';
 
 type Result =
   | { kind: 'success'; title: string; message: string }
