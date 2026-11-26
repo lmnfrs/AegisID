@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Button, Card, FormField, Select } from '../../components/ui';
 import { loadTenants } from '../../lib/tenants';
 import type { Tenant } from '../../lib/tenants';
+import { decodeToken } from '../../lib/jwt';
 
 type UserRow = { id: string; username: string };
 type UsersBody = { ok?: boolean; error?: string; users?: UserRow[] };
@@ -19,25 +20,6 @@ type IssueBody = {
 
 type VerifyBody = { ok?: boolean; error?: string; claims?: Record<string, unknown> };
 type VerifyResult = { ok: true; claims: Record<string, unknown> } | { ok: false; error: string };
-
-// Decodes one base64url JWT segment into JSON. Throws on malformed input.
-function decodeSegment(segment: string): unknown {
-  const base64 = segment.replace(/-/g, '+').replace(/_/g, '/');
-  const binary = atob(base64.padEnd(Math.ceil(base64.length / 4) * 4, '='));
-  const bytes = Uint8Array.from(binary, (ch) => ch.charCodeAt(0));
-  return JSON.parse(new TextDecoder().decode(bytes));
-}
-
-// Shows the header and payload only. The signature is never decoded or trusted here.
-function decodeToken(token: string): { header: unknown; payload: unknown } | null {
-  const parts = token.split('.');
-  if (parts.length !== 3) return null;
-  try {
-    return { header: decodeSegment(parts[0]), payload: decodeSegment(parts[1]) };
-  } catch {
-    return null;
-  }
-}
 
 export function DevToken() {
   const [slug, setSlug] = useState('');

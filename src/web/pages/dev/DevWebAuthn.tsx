@@ -8,6 +8,7 @@ import type {
 import { Alert, Button, Card, FormField, Input, Select } from '../../components/ui';
 import { loadTenants } from '../../lib/tenants';
 import type { Tenant } from '../../lib/tenants';
+import { decodeToken } from '../../lib/jwt';
 
 type Result =
   | { kind: 'success'; title: string; message: string; token?: string; expiresAt?: number }
@@ -55,6 +56,7 @@ export function DevWebAuthn() {
   const [username, setUsername] = useState('');
   const [busy, setBusy] = useState<'register' | 'login' | null>(null);
   const [result, setResult] = useState<Result | null>(null);
+  const decoded = result?.kind === 'success' && result.token ? decodeToken(result.token) : null;
   const mounted = useRef(false);
 
   useEffect(() => {
@@ -195,6 +197,14 @@ export function DevWebAuthn() {
                 <br />
                 Expires: {result.expiresAt ? new Date(result.expiresAt).toLocaleString() : ''}
                 <textarea className="input" readOnly rows={5} value={result.token} style={{ fontFamily: 'var(--mono)' }} />
+                {decoded && (
+                  <>
+                    <strong>Header</strong>
+                    <pre style={{ fontFamily: 'var(--mono)' }}>{JSON.stringify(decoded.header, null, 2)}</pre>
+                    <strong>Payload</strong>
+                    <pre style={{ fontFamily: 'var(--mono)' }}>{JSON.stringify(decoded.payload, null, 2)}</pre>
+                  </>
+                )}
               </>
             )}
           </Alert>
