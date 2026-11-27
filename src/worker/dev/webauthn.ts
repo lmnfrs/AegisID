@@ -20,7 +20,8 @@ import type {
 //
 // - State lives in D1 (tables from migrations/0001_init.sql): tenants, users,
 //   credentials and webauthn_challenges, all keyed by UUID.
-// - No session or token is issued; sign-in only reports which username matched.
+// - login/verify returns a short-lived access token (see ../jwt.ts). No session or
+//   cookie is set, and no route verifies the token yet.
 export const auth = new Hono<{ Bindings: Env }>();
 
 const CHALLENGE_TTL_MS = 5 * 60 * 1000;
