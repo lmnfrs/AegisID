@@ -32,4 +32,10 @@ export const devPages = [
     desc: 'Send a test email.',
     Component: lazy(() => import('./DevEmail').then((m) => ({ default: m.DevEmail }))),
   },
+  {
+    path: 'token',
+    title: 'Token',
+    desc: 'Issue and verify a user access token (JWT).',
+    Component: lazy(() => import('./DevToken').then((m) => ({ default: m.DevToken }))),
+  },
 ];

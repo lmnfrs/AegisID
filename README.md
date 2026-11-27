@@ -43,8 +43,8 @@ One Worker serves one origin. Tenants are separated by path: `/t/{slug}/...`. Th
 | Route | Handled by | Status |
 | --- | --- | --- |
 | `/healthz` | Worker | Returns `ok` |
-| `/t/{slug}/api/health` | Worker | Returns `{ "ok": true, "tenant": "<slug>" }` |
-| `/t/{slug}/api/email/*`, `/t/{slug}/api/auth/*`, `/api/dev/tenants*` | Worker | Dev-only. See [Dev routes](#dev-routes) |
+| `/t/{slug}/api/v1/health` | Worker | Returns `{ "ok": true, "tenant": "<slug>" }` |
+| `/t/{slug}/api/v1/email/*`, `/t/{slug}/api/v1/auth/*`, `/api/v1/dev/tenants*`, `/api/v1/dev/token*` | Worker | Dev-only. See [Dev routes](#dev-routes) |
 | `/t/{slug}/.well-known/*` | Worker | Planned. Returns 404 today |
 | `/`, `/dev/*` | SPA (static assets) | Home page and dev pages |
 | Any other path | SPA (static assets) | Falls back to the SPA page |
@@ -70,7 +70,7 @@ pnpm dev
 Then open <http://localhost:5173/dev>.
 
 - `pnpm install` may fail with `ERR_PNPM_IGNORED_BUILDS`. If it does, run `pnpm approve-builds` and allow `esbuild` and `workerd`. This is already set in `pnpm-workspace.yaml`. Both packages need native binaries. esbuild is the JavaScript bundler. workerd is the Workers runtime used locally.
-- `.dev.vars` sets `RP_NAME`, `RP_ID` and `RP_ORIGIN` for local work. Values in `.dev.vars` override the `vars` in `wrangler.jsonc`. `.dev.vars` is gitignored. `.dev.vars.example` is not secret and is committed.
+- `.dev.vars` sets `RP_NAME`, `RP_ID` and `RP_ORIGIN` for local work. It also needs `JWT_PRIVATE_JWK`, the access token signing key: run `node scripts/gen-jwt-key.mjs` and add the output as `JWT_PRIVATE_JWK='<json>'`. Without it, sign-in on `/dev/webauthn` and `/dev/token` fail with a 500. Run `pnpm cf-typegen` after adding it. Values in `.dev.vars` override the `vars` in `wrangler.jsonc`. `.dev.vars` is gitignored. `.dev.vars.example` is not secret and is committed.
 - Passkeys work locally only at <http://localhost:5173>. Do not use `127.0.0.1` or a LAN IP. The passkey origin must match `RP_ORIGIN`.
 - `pnpm dev` is the daily command. Do not use `wrangler dev` for daily work.
 - The `EMAIL` binding is set to `remote: true`. The email test sends real mail, even in local development.
@@ -90,7 +90,7 @@ No test runner is configured yet.
 
 ## Dev routes
 
-> **Dev routes have no authentication.** They can create tenants, list users, run a passkey test and send email. They must never be enabled in production.
+> **Dev routes have no authentication.** They can create tenants, list users, run a passkey test, issue access tokens and send email. They must never be enabled in production.
 
 The routes are mounted only when `import.meta.env.DEV` is true (the dev server) or when the build sets `VITE_SHOW_DEV=true`. A build with `VITE_SHOW_DEV=true` exposes them. Do not set it for a production build.
 
@@ -102,14 +102,16 @@ The dev pages are at `/dev/*`. The Worker routes are in `src/worker/dev/`.
 src/
   worker/
     index.ts      Hono app and route mounting
-    dev/          Dev-only routes: tenants.ts, webauthn.ts, email.ts
+    jwt.ts        ES256 access token sign and verify
+    dev/          Dev-only routes: tenants.ts, webauthn.ts, email.ts, token.ts
   web/
     App.tsx       Routes: home page and the /dev shell
     main.tsx      React entry point
     pages/        Home.tsx and the dev pages (lazy-loaded), devPages.ts
     components/   ui.tsx (shared UI), DataTable.tsx
-    lib/          Client helpers (tenants.ts)
+    lib/          Client helpers (tenants.ts, jwt.ts)
 migrations/       D1 SQL migrations (0001_init.sql)
+scripts/          gen-jwt-key.mjs (generates the JWT signing key)
 docs/             Design decisions. See docs/README.md
 public/           Static files
 wrangler.jsonc    Worker, assets, D1, email and vars config
@@ -126,7 +128,7 @@ Design decisions are recorded in [docs/README.md](docs/README.md).
 
 The target is Cloudflare Workers Builds from the `main` branch. <!-- TODO(maintainer): document the exact build and deploy commands set in the Cloudflare dashboard. They are not recorded in this repo. -->
 
-Secrets are set with `wrangler secret put <NAME>` and are never committed. Local secrets go in `.dev.vars`, which is gitignored.
+Secrets are set with `wrangler secret put <NAME>` and are never committed. Local secrets go in `.dev.vars`, which is gitignored. Before the first deploy, and for previews, generate a key with `node scripts/gen-jwt-key.mjs` and run `pnpm exec wrangler secret put JWT_PRIVATE_JWK`. Do not reuse the local key.
 
 ## Contributing
 

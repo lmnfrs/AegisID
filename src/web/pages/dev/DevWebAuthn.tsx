@@ -8,9 +8,10 @@ import type {
 import { Alert, Button, Card, FormField, Input, Select } from '../../components/ui';
 import { loadTenants } from '../../lib/tenants';
 import type { Tenant } from '../../lib/tenants';
+import { decodeToken } from '../../lib/jwt';
 
 type Result =
-  | { kind: 'success'; title: string; message: string }
+  | { kind: 'success'; title: string; message: string; token?: string; expiresAt?: number }
   | { kind: 'error'; message: string };
 
 type ApiBody = {
@@ -20,6 +21,8 @@ type ApiBody = {
   options?: unknown;
   credentialId?: string;
   username?: string;
+  token?: string;
+  expiresAt?: number;
 };
 
 async function post(path: string, payload: unknown): Promise<ApiBody> {
@@ -53,6 +56,7 @@ export function DevWebAuthn() {
   const [username, setUsername] = useState('');
   const [busy, setBusy] = useState<'register' | 'login' | null>(null);
   const [result, setResult] = useState<Result | null>(null);
+  const decoded = result?.kind === 'success' && result.token ? decodeToken(result.token) : null;
   const mounted = useRef(false);
 
   useEffect(() => {
@@ -80,7 +84,7 @@ export function DevWebAuthn() {
       });
   }
 
-  const base = `/t/${encodeURIComponent(slug)}/api/auth`;
+  const base = `/t/${encodeURIComponent(slug)}/api/v1/auth`;
 
   async function register() {
     setBusy('register');
@@ -123,6 +127,8 @@ export function DevWebAuthn() {
         kind: 'success',
         title: 'Signed in',
         message: `Username: ${done.username ?? ''}`,
+        token: done.token,
+        expiresAt: done.expiresAt,
       });
     } catch (err) {
       setResult({ kind: 'error', message: describeError(err) });
@@ -135,7 +141,7 @@ export function DevWebAuthn() {
     <div>
       <Card
         title="Passkey test"
-        desc="Registers and uses a passkey via /t/:slug/api/auth. Credentials are stored in the local D1 database."
+        desc="Registers and uses a passkey via /t/:slug/api/v1/auth. Credentials are stored in the local D1 database."
       >
         <FormField label="Tenant slug">
           {(fieldProps) => (
@@ -186,6 +192,21 @@ export function DevWebAuthn() {
         {result?.kind === 'success' && (
           <Alert variant="success" title={result.title}>
             {result.message}
+            {result.token && (
+              <>
+                <br />
+                Expires: {result.expiresAt ? new Date(result.expiresAt).toLocaleString() : ''}
+                <textarea className="input" readOnly rows={5} value={result.token} style={{ fontFamily: 'var(--mono)' }} />
+                {decoded && (
+                  <>
+                    <strong>Header</strong>
+                    <pre style={{ fontFamily: 'var(--mono)' }}>{JSON.stringify(decoded.header, null, 2)}</pre>
+                    <strong>Payload</strong>
+                    <pre style={{ fontFamily: 'var(--mono)' }}>{JSON.stringify(decoded.payload, null, 2)}</pre>
+                  </>
+                )}
+              </>
+            )}
           </Alert>
         )}
         {result?.kind === 'error' && (

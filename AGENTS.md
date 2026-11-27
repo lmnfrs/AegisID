@@ -4,8 +4,8 @@
 
 AegisID: self-hosted, multi-tenant OIDC identity provider with passkey-only login (WebAuthn/FIDO2). Early development.
 
-- Implemented: Worker `/healthz` and `/t/:slug/api/health`; public home page at `/`.
-- Dev-only tooling under `/dev`: tenants and users lists, passkey test on D1, email test. Not for production.
+- Implemented: Worker `/healthz` and `/t/:slug/api/v1/health`; public home page at `/`.
+- Dev-only tooling under `/dev`: tenants and users lists, passkey test on D1, token issue and verify, email test. Not for production.
 - `docs/adr/` holds architecture decision records; index in `docs/README.md`.
 - The scope spec is `information_en.md`, which is NOT in the repo (a copy lives outside it). The design targets NIST SP 800-63B-4 AAL2. Never write code, docs or comments that claim AAL2 compliance or OIDC conformance. License is AGPL-3.0.
 
@@ -29,12 +29,14 @@ One Cloudflare Worker serves one origin; tenancy is path-based: issuer is `https
 
 - `src/worker/index.ts`: Hono app (Worker entry, set as `main` in `wrangler.jsonc`). Tenant routes hang off `new Hono().basePath("/t/:slug")` and are mounted on the root app.
 - Dev routes are mounted only when `showDev` (`import.meta.env.DEV || import.meta.env.VITE_SHOW_DEV === "true"`). They have NO auth:
-  - `/t/:slug/api/email/*`: `src/worker/dev/email.ts`
-  - `/t/:slug/api/auth/*`: `src/worker/dev/webauthn.ts`
-  - `/api/dev/tenants[/:slug/users]`: `src/worker/dev/tenants.ts`
+  - `/t/:slug/api/v1/email/*`: `src/worker/dev/email.ts`
+  - `/t/:slug/api/v1/auth/*`: `src/worker/dev/webauthn.ts`
+  - `/api/v1/dev/tenants[/:slug/users]`: `src/worker/dev/tenants.ts`
+  - `/api/v1/dev/token[/verify]`: `src/worker/dev/token.ts`
+- Access tokens: ES256 JWTs from `src/worker/jwt.ts`, 60 minutes, signed with the private JWK in secret `JWT_PRIVATE_JWK` (`node scripts/gen-jwt-key.mjs`). The dev passkey `login/verify` route returns one. See `docs/adr/0004-access-token-signing.md`. Nothing verifies them on a route yet.
 - Types: use the global `Env` from generated `worker-configuration.d.ts`. There is no hand-written Bindings type.
 - `src/web/`: React SPA built by Vite, served as static assets.
-- Routing split lives in `wrangler.jsonc` `assets`: `run_worker_first` lists the paths the Worker must answer (`/t/*/api/*`, `/t/*/.well-known/*`, `/healthz`, `/api/dev/*`); everything else falls to static assets, and `not_found_handling: "single-page-application"` returns the SPA for unknown paths (`/t/{slug}/login`, `/enroll`, `/recover`). A new Worker-handled route must be added to `run_worker_first` or the SPA will swallow it.
+- Routing split lives in `wrangler.jsonc` `assets`: `run_worker_first` lists the paths the Worker must answer (`/t/*/api/*`, `/t/*/.well-known/*`, `/healthz`, `/api/v1/dev/*`); everything else falls to static assets, and `not_found_handling: "single-page-application"` returns the SPA for unknown paths (`/t/{slug}/login`, `/enroll`, `/recover`). A new Worker-handled route must be added to `run_worker_first` or the SPA will swallow it.
 - SPA: react-router-dom v7 `BrowserRouter` in `src/web/App.tsx`. `/` (Home) is public. All dev pages are children of the dev-gated `/dev` route, rendered in `DevLayout`'s `<Outlet />`, and each is lazy-loaded with `React.lazy`. The route, nav, and index entries come from `src/web/pages/dev/devPages.ts`. Internal links use `<Link>`/`<NavLink>`, never `<a href>`.
 - UI: shared components live in `src/web/components/ui.tsx`; import them in one statement from `'../components/ui'`.
 - `DataTable` lives in its own module `src/web/components/DataTable.tsx`. Keep it out of `ui.tsx`, and import it only from lazy-loaded pages so DataTables never lands in the main bundle.

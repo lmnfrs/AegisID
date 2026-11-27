@@ -2,7 +2,7 @@
 
 One Hono app is the Worker entry (`main` in `wrangler.jsonc` points at `src/worker/index.ts`). It shares one origin with the SPA. Tenancy is by path: tenant routes hang off `new Hono().basePath("/t/:slug")`.
 
-Scope today: the OIDC endpoints are not implemented. There is no authorize, token, userinfo, JWKS or end-session handler, and the discovery path has no handler. The passkey routes are dev-only tests and issue no session.
+Scope today: the OIDC endpoints are not implemented. There is no authorize, token, userinfo, JWKS or end-session handler, and the discovery path has no handler. The passkey routes are dev-only tests. Dev `login/verify` returns an access token (see [Access tokens](#access-tokens)), but no route checks one yet and there is no session or cookie.
 
 ## Which requests reach the Worker
 
@@ -11,7 +11,7 @@ Only paths in `assets.run_worker_first` (`wrangler.jsonc`) reach the Worker:
 - `/t/*/api/*`
 - `/t/*/.well-known/*`
 - `/healthz`
-- `/api/dev/*`
+- `/api/v1/dev/*`
 
 Everything else goes to static assets. Because `not_found_handling` is `"single-page-application"`, an unknown path returns `index.html` with status 200.
 
@@ -19,8 +19,8 @@ A new route outside these prefixes fails quietly: clients get HTML. Add its pref
 
 ## Route layout
 
-- Root app (`index.ts`): `/healthz` and, in dev builds only, `/api/dev/tenants`.
-- Tenant sub-app (`t`): `/t/:slug/api/health` is always on. `/t/:slug/api/email` and `/t/:slug/api/auth` are dev only.
+- Root app (`index.ts`): `/healthz` and, in dev builds only, `/api/v1/dev/tenants` and `/api/v1/dev/token` (issue and verify an access token, `src/worker/dev/token.ts`).
+- Tenant sub-app (`t`): `/t/:slug/api/v1/health` is always on. `/t/:slug/api/v1/email` and `/t/:slug/api/v1/auth` are dev only.
 - Dev routes mount only when `showDev` is true: `import.meta.env.DEV`, or `VITE_SHOW_DEV=true` at build time. Dev routes have no authentication. Never set `VITE_SHOW_DEV=true` for a production build.
 
 To add a tenant route, export a Hono instance from a module and mount it:
@@ -33,7 +33,7 @@ thing.get("/", (c) => c.json({ tenant: c.req.param("slug") }));
 
 // src/worker/index.ts
 import { thing } from "./tenant-thing";
-t.route("/api/thing", thing);
+t.route("/api/v1/thing", thing);
 ```
 
 `c.req.param("slug")` works inside mounted sub-apps, and the dev modules already rely on it. The router does not check the slug or that the tenant exists. Do that yourself (see Database).
@@ -71,6 +71,17 @@ Success bodies differ by route (`{ ok: true, ... }`, `{ tenants: [...] }`, `{ ch
 
 Dev routes put the exception message in 500 bodies so the dev pages can show it. Production routes should not do that.
 
+## Access tokens
+
+`jwt.ts` signs and verifies ES256 JWTs with Web Crypto. Design and trade-offs: [ADR 0004](../../docs/adr/0004-access-token-signing.md).
+
+- Needs secret `JWT_PRIVATE_JWK` (generate with `node scripts/gen-jwt-key.mjs`). A missing or bad key makes sign and verify throw, so routes return 500.
+- `signAccessToken(env, { issuer, audience, userId, username })` returns `{ token, expiresAt }`. TTL is 60 minutes. Claims: `iss`, `aud`, `sub` (user UUID), `preferred_username`, `iat`, `exp`, `jti`.
+- `verifyAccessToken(env, token, { issuer, audience })` returns `{ ok: true, claims }` or `{ ok: false, error }`. It does not throw on a bad token.
+- `iss` is `<request origin>/t/{slug}`. `aud` is `DASHBOARD_AUDIENCE` (`aegisid-dashboard`).
+- Dev callers: `POST /t/:slug/api/v1/auth/login/verify` (returns `token` and `expiresAt` after a passkey check), `POST /api/v1/dev/token` (`{ slug, userId }`, no passkey check) and `POST /api/v1/dev/token/verify` (`{ slug, token }`). Dev page: `/dev/token`.
+- Tokens cannot be revoked before `exp`.
+
 ## WebAuthn
 
 Library: `@simplewebauthn/server` v14, used in `dev/webauthn.ts`.
@@ -92,8 +103,8 @@ Library: `@simplewebauthn/server` v14, used in `dev/webauthn.ts`.
 ## Gotchas
 
 - A route missing from `run_worker_first` returns the SPA's HTML with status 200.
-- `/api/dev/*` always reaches the Worker. In production its routes are not mounted, so requests get a 404.
-- `/t/:slug/api/health` does not check that the tenant exists. Do not copy it.
+- `/api/v1/dev/*` always reaches the Worker. In production its routes are not mounted, so requests get a 404.
+- `/t/:slug/api/v1/health` does not check that the tenant exists. Do not copy it.
 - Previews need every var and binding repeated under `previews`.
 - Changing `RP_ID` after users register passkeys makes those passkeys unusable.
 - Auth, OIDC, crypto, database access and migrations need maintainer review ([AGENTS.md](../../AGENTS.md)).

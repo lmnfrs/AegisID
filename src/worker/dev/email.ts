@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 
-// Dev-only email send test. Mounted under /t/:slug/api/email by src/worker/index.ts.
+// Dev-only email send test. Mounted under /t/:slug/api/v1/email by src/worker/index.ts.
 export const devEmail = new Hono<{ Bindings: Env }>();
 
 devEmail.post("/test", async (c) => {

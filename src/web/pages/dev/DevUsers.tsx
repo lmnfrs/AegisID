@@ -83,7 +83,7 @@ export function DevUsers() {
     setUsersError(null);
     setUsers(null);
     try {
-      const res = await fetch(`/api/dev/tenants/${encodeURIComponent(slug)}/users`);
+      const res = await fetch(`/api/v1/dev/tenants/${encodeURIComponent(slug)}/users`);
       const body = (await res.json().catch(() => ({}))) as UsersBody;
       if (!res.ok || !Array.isArray(body.users)) {
         throw new Error(body.error ?? `HTTP ${res.status}`);
@@ -100,7 +100,7 @@ export function DevUsers() {
 
   return (
     <div>
-      <Card title="Users" desc="Lists users and passkey counts per tenant via /api/dev/tenants/:slug/users.">
+      <Card title="Users" desc="Lists users and passkey counts per tenant via /api/v1/dev/tenants/:slug/users.">
         <FormField label="Tenant slug">
           {(fieldProps) => (
             <Select

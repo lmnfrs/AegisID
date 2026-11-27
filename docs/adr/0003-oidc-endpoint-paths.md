@@ -5,7 +5,7 @@
 
 ## Context
 
-`wrangler.jsonc` sets `assets.run_worker_first` to `/t/*/api/*`, `/t/*/.well-known/*`, `/healthz` and `/api/dev/*`. Only these paths reach the Worker. Every other path falls through to static assets, and `not_found_handling: "single-page-application"` serves the SPA's `index.html`.
+`wrangler.jsonc` sets `assets.run_worker_first` to `/t/*/api/*`, `/t/*/.well-known/*`, `/healthz` and `/api/v1/dev/*`. Only these paths reach the Worker. Every other path falls through to static assets, and `not_found_handling: "single-page-application"` serves the SPA's `index.html`.
 
 OIDC needs server endpoints: authorization, token, userinfo, JWKS and end-session. Discovery at `/t/{slug}/.well-known/openid-configuration` is already covered by `/t/*/.well-known/*`, although no handler exists yet. If a server endpoint is not covered by `run_worker_first`, the request gets HTML from the SPA with a success status. Clients then fail with confusing parse errors instead of a clear 404.
 

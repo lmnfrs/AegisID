@@ -2,3 +2,6 @@
 RP_NAME=AegisID
 RP_ID=localhost
 RP_ORIGIN=http://localhost:5173
+
+# ES256 private JWK for access tokens. Generate: node scripts/gen-jwt-key.mjs
+JWT_PRIVATE_JWK=

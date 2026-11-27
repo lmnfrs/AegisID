@@ -15,24 +15,24 @@
   "dependencies": {
     "@simplewebauthn/browser": "^14.0.0",
     "@simplewebauthn/server": "^14.1.0",
-    "datatables.net-dt": "^3.1.5",
-    "datatables.net-react": "^2.0.0",
-    "hono": "^4.13.13",
+    "datatables.net-dt": "^3.1.6",
+    "datatables.net-react": "^2.0.1",
+    "hono": "^4.13.22",
     "qrcode.react": "^4.2.0",
-    "react": "^19.2.8",
-    "react-dom": "^19.2.8",
-    "react-router-dom": "^7.18.5",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "react-router-dom": "^7.18.7",
     "zod": "^4.6.7"
   },
   "devDependencies": {
-    "@cloudflare/vite-plugin": "^1.64.0",
-    "@types/node": "^24.13.3",
-    "@types/react": "^19.2.18",
-    "@types/react-dom": "^19.2.7",
-    "@vitejs/plugin-react": "^6.1.1",
-    "oxlint": "^1.81.0",
-    "typescript": "~6.0.2",
-    "vite": "^8.3.0",
-    "wrangler": "^4.151.0"
+    "@cloudflare/vite-plugin": "^1.70.2",
+    "@types/node": "^24.19.4",
+    "@types/react": "^19.3.3",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.3.0",
+    "oxlint": "^1.95.0",
+    "typescript": "~6.0.3",
+    "vite": "^8.4.0",
+    "wrangler": "^4.168.0"
   }
 }

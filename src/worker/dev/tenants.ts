@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 
-// DEV-ONLY tenant list and create. Mounted under /api/dev/tenants by src/worker/index.ts.
+// DEV-ONLY tenant list and create. Mounted under /api/v1/dev/tenants by src/worker/index.ts.
 // No authentication: real tenant administration needs admin auth.
 export const devTenants = new Hono<{ Bindings: Env }>();
 

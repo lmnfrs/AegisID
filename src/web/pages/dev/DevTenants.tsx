@@ -53,7 +53,7 @@ export function DevTenants() {
     setIsCreating(true);
     setResult(null);
     try {
-      const res = await fetch('/api/dev/tenants', {
+      const res = await fetch('/api/v1/dev/tenants', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ slug: slug.trim(), name: name.trim() }),
@@ -77,7 +77,7 @@ export function DevTenants() {
 
   return (
     <div>
-      <Card title="Tenants" desc="Create tenants for the passkey test page via /api/dev/tenants.">
+      <Card title="Tenants" desc="Create tenants for the passkey test page via /api/v1/dev/tenants.">
         <FormField label="Slug" hint="Lowercase letters, digits and hyphens. Up to 63 characters.">
           {(fieldProps) => (
             <Input
