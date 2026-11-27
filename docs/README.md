@@ -8,6 +8,7 @@ This directory holds the project's design records: Architecture Decision Records
 | 0002 | Path-based tenancy and UUID keys | Accepted | [adr/0002-tenancy-and-keys.md](adr/0002-tenancy-and-keys.md) |
 | 0003 | Where OIDC endpoints live | Proposed | [adr/0003-oidc-endpoint-paths.md](adr/0003-oidc-endpoint-paths.md) |
 | 0004 | Access token format and signing | Accepted | [adr/0004-access-token-signing.md](adr/0004-access-token-signing.md) |
+| 0005 | Rate limiting public passkey routes | Accepted | [adr/0005-rate-limiting.md](adr/0005-rate-limiting.md) |
 
 ## Adding an ADR
 
