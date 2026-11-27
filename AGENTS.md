@@ -34,6 +34,7 @@ One Cloudflare Worker serves one origin; tenancy is path-based: issuer is `https
   - `/api/v1/dev/tenants[/:slug/users]`: `src/worker/dev/tenants.ts`
   - `/api/v1/dev/token[/verify]`: `src/worker/dev/token.ts`
 - Access tokens: ES256 JWTs from `src/worker/jwt.ts`, 60 minutes, signed with the private JWK in secret `JWT_PRIVATE_JWK` (`node scripts/gen-jwt-key.mjs`). The dev passkey `login/verify` route returns one. See `docs/adr/0004-access-token-signing.md`. Nothing verifies them on a route yet.
+- Rate limiting: `authRateLimit` in `src/worker/ratelimit.ts` (binding `AUTH_LIMITER`, 10/min per tenant + IP, fails open) guards `register/options` and `login/options`. Apply it to any new public auth route. See `docs/adr/0005-rate-limiting.md`.
 - Types: use the global `Env` from generated `worker-configuration.d.ts`. There is no hand-written Bindings type.
 - `src/web/`: React SPA built by Vite, served as static assets.
 - Routing split lives in `wrangler.jsonc` `assets`: `run_worker_first` lists the paths the Worker must answer (`/t/*/api/*`, `/t/*/.well-known/*`, `/healthz`, `/api/v1/dev/*`); everything else falls to static assets, and `not_found_handling: "single-page-application"` returns the SPA for unknown paths (`/t/{slug}/login`, `/enroll`, `/recover`). A new Worker-handled route must be added to `run_worker_first` or the SPA will swallow it.

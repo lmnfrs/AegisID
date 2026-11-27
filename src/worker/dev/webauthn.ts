@@ -7,6 +7,7 @@ import {
     verifyRegistrationResponse,
 } from "@simplewebauthn/server";
 import { DASHBOARD_AUDIENCE, signAccessToken } from "../jwt";
+import { authRateLimit } from "../ratelimit";
 import type {
     AuthenticationResponseJSON,
     RegistrationResponseJSON,
@@ -19,7 +20,8 @@ import type {
 //
 // - State lives in D1 (tables from migrations/0001_init.sql): tenants, users,
 //   credentials and webauthn_challenges, all keyed by UUID.
-// - No session or token is issued; sign-in only reports which username matched.
+// - login/verify returns a short-lived access token (see ../jwt.ts). No session or
+//   cookie is set, and no route verifies the token yet.
 export const auth = new Hono<{ Bindings: Env }>();
 
 const CHALLENGE_TTL_MS = 5 * 60 * 1000;
@@ -219,7 +221,7 @@ function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
-auth.post("/register/options", async (c) => {
+auth.post("/register/options", authRateLimit, async (c) => {
   const slug = c.req.param("slug") ?? "";
   if (!validSlug(slug)) return c.json({ ok: false, error: "Invalid tenant slug" }, 400);
 
@@ -297,7 +299,7 @@ auth.post("/register/verify", async (c) => {
   }
 });
 
-auth.post("/login/options", async (c) => {
+auth.post("/login/options", authRateLimit, async (c) => {
   const slug = c.req.param("slug") ?? "";
   if (!validSlug(slug)) return c.json({ ok: false, error: "Invalid tenant slug" }, 400);
 
