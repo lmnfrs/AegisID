@@ -7,6 +7,7 @@ import {
     verifyRegistrationResponse,
 } from "@simplewebauthn/server";
 import { DASHBOARD_AUDIENCE, signAccessToken } from "../jwt";
+import { authRateLimit } from "../ratelimit";
 import type {
     AuthenticationResponseJSON,
     RegistrationResponseJSON,
@@ -219,7 +220,7 @@ function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
-auth.post("/register/options", async (c) => {
+auth.post("/register/options", authRateLimit, async (c) => {
   const slug = c.req.param("slug") ?? "";
   if (!validSlug(slug)) return c.json({ ok: false, error: "Invalid tenant slug" }, 400);
 
@@ -297,7 +298,7 @@ auth.post("/register/verify", async (c) => {
   }
 });
 
-auth.post("/login/options", async (c) => {
+auth.post("/login/options", authRateLimit, async (c) => {
   const slug = c.req.param("slug") ?? "";
   if (!validSlug(slug)) return c.json({ ok: false, error: "Invalid tenant slug" }, 400);
 
